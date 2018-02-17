@@ -1,0 +1,20 @@
+{
+  "name": "el-i3",
+  "version": "1.0.0",
+  "description": "electron i3 interface",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "electron",
+    "i3"
+  ],
+  "author": "Thomas Heitzinger",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "~1.7.8"
+  }
+}
+
