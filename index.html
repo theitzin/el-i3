@@ -2,18 +2,12 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="styles.css">
     <title>el-i3</title>
   </head>
   <body>
-    <div id='screen'>
-      <div id='container'>
-        <h1>Hello World!</h1>
-        <!-- All of the Node.js APIs are available in this renderer process. -->
-        We are using Node.js <script>document.write(process.versions.node)</script>,
-        Chromium <script>document.write(process.versions.chrome)</script>,
-        and Electron <script>document.write(process.versions.electron)</script>.
-        <div id='data'></div>
-      </div>
+    <div id='container'>
+      <div id='data'></div>
     </div>
     <script>
       require('./renderer.js')

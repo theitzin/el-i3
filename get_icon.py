@@ -12,8 +12,14 @@ def get_data(id):
 	name = subprocess.run(['xprop', '-id', id, 'WM_CLASS'], stdout=subprocess.PIPE)
 	name = name.stdout.decode('utf-8')[19:].split(',')[0].replace('"', '')
 
-	result = subprocess.run(['xprop', '-id', id, '-notype', '32c', '_NET_WM_ICON'], stdout=subprocess.PIPE)
+	# default len to small to get icon >128x128 in size
+	result = subprocess.run(['xprop', '-id', id, '-len', '1000000', '-notype', '32c', '_NET_WM_ICON'], stdout=subprocess.PIPE)
 	result = result.stdout.decode('utf-8')[15:]
+	
+	# property does not exist
+	if result == 'not found.\n':
+		subprocess.call(['cp', 'icons/default.png', 'icons/%s.png' % name])
+		sys.exit()
 
 	data = [int(x) for x in result.split(',')]
 	return (name, data)
@@ -25,18 +31,29 @@ def uint_to_rgba(x):
 (name, data) = get_data(sys.argv[1])
 
 pos = 0
-while True:
+largest = 0
+largest_path = ''
+for _ in range(10): # max iteration in case something goes wrong
 	x = data[pos]
 	y = data[pos + 1]
+	if x * y + pos + 2 > len(data): # should only happen if error in data
+		break
 	icon = data[pos + 2 : x * y + pos + 2]
 	icon = [uint_to_rgba(p) for p in icon]
 	icon = np.array(icon).ravel().reshape((y, x*4))
 
-	file = open('icons/%s_%i_%i.png' % (name, x, y), 'wb')
+	file_path = 'icons/all_sizes/%s_%i_%i.png' % (name, x, y)
+	file = open(file_path, 'wb')
 	w = png.Writer(x, y, alpha=True)
 	w.write(file, icon)
 	file.close()
 
+	if x > largest:
+		largest = x
+		largest_path = file_path
+
 	pos = x * y + pos + 2
 	if pos >= len(data):
 		break
+
+subprocess.call(['cp', largest_path, 'icons/%s.png' % name])

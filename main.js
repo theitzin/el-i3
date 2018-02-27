@@ -14,8 +14,9 @@ let mainWindow
 function create_window () {
     mainWindow = new BrowserWindow({
         width: 400, 
-        height: 200,
-        type: 'dialog'
+        height: 85,
+        type: 'dialog',
+        frame: false
     });
 
       // and load the index.html of the app.
@@ -25,7 +26,6 @@ function create_window () {
         slashes: true
     }))
 
-    mainWindow.setMenu(null);
     mainWindow.webContents.openDevTools()
 
     mainWindow.on('closed', function () {

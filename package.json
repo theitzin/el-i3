@@ -14,7 +14,7 @@
   "author": "Thomas Heitzinger",
   "license": "CC0-1.0",
   "dependencies" :{
-    "xprop" : "0.0.0",
+    "path" : "0.12.7",
     "i3" : "0.2.1",
     "dom-tree" : "1.0.0"
   },

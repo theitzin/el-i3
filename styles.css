@@ -1,0 +1,13 @@
+img {
+    width: 48px;
+    height: 48px;
+}
+
+.icon {
+	background: #FFFFFF;
+	margin: 5px;
+}
+
+.icon_focused {
+	background: #AACCAA;
+}
