@@ -14,7 +14,7 @@ let mainWindow
 function create_window () {
     mainWindow = new BrowserWindow({
         width: 400, 
-        height: 85,
+        height: 100,
         type: 'dialog',
         frame: false
     });

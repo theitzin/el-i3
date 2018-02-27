@@ -84,11 +84,13 @@ update_taskbar_focus = function(id) {
     show_taskbar();
 }
 
-check_icon_exists = function(name, id) {
-    fs.access('icons/png/' + name + '.png', fs.constants.R_OK, (err) => {
-        if (err)
-            exec('python3 get_icon.py ' + id);
-    });
+get_icon_path = function(name) {
+    try {
+      fs.accessSync(`icons/papirus/${name}.svg`, fs.constants.R_OK);
+        return `icons/papirus/${name}.svg`;
+    } catch (err) {
+        return `icons/papirus/xfce_unknown.svg`; // use as default icon
+    }
 }
 
 show_taskbar = function() {
@@ -104,15 +106,11 @@ show_taskbar = function() {
     let data = '';
     for (let i = 0; i < workspace.windows.length; i++) {
         let win = workspace.windows[i];
-        check_icon_exists(win.class, win.id);
-
         let css_class = 'icon';
         if (win.id == taskbar_data.focused_id)
             css_class += ' icon_focused';
-        // _NET_WM_ICON png
-        // data += `<img class="${css_class}" src="icons/png/${win.name}.png"/>`;
-        // papirus svg
-        data += `<img class="${css_class}" src="icons/papirus/${win.name.toLowerCase()}.svg"/>`;
+
+        data += `<img class="${css_class}" src="${get_icon_path(win.class.toLowerCase())}"/>`;
     }
     dom.replace('#container', '#data', '<div id="data">{html}</div>', {
         html: data
