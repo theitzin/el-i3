@@ -32,7 +32,7 @@ update_taskbar = function(state, data=null) {
                 for (let k = 0; k < workspace.nodes.length; k++) {
                     let win = workspace.nodes[k];
                     let window_data = {};
-                    window_data['name'] = win.window_properties.instance;
+                    window_data['class'] = win.window_properties.class;
                     window_data['id'] = win.window;
                     window_data['title'] = win.name;
                     window_list.push(window_data);
@@ -40,7 +40,6 @@ update_taskbar = function(state, data=null) {
                     if (win.focused) {
                         focused_id = window_data['id'];
                     }
-                    check_icon_exists(window_data['name'], window_data['id']);
                 }
                 workspace_data['windows'] = window_list;
                 workspace_list.push(workspace_data);
@@ -86,7 +85,7 @@ update_taskbar_focus = function(id) {
 }
 
 check_icon_exists = function(name, id) {
-    fs.access('icons/' + name + '.png', fs.constants.R_OK, (err) => {
+    fs.access('icons/png/' + name + '.png', fs.constants.R_OK, (err) => {
         if (err)
             exec('python3 get_icon.py ' + id);
     });
@@ -104,11 +103,16 @@ show_taskbar = function() {
     let workspace = taskbar_data['focused_workspace'];
     let data = '';
     for (let i = 0; i < workspace.windows.length; i++) {
-        let css_class = 'icon';
-        if (workspace.windows[i].id == taskbar_data.focused_id)
-            css_class += ' icon_focused';
+        let win = workspace.windows[i];
+        check_icon_exists(win.class, win.id);
 
-        data += `<img class="${css_class}" src="icons/${workspace.windows[i].name}.png"/>`;
+        let css_class = 'icon';
+        if (win.id == taskbar_data.focused_id)
+            css_class += ' icon_focused';
+        // _NET_WM_ICON png
+        // data += `<img class="${css_class}" src="icons/png/${win.name}.png"/>`;
+        // papirus svg
+        data += `<img class="${css_class}" src="icons/papirus/${win.name.toLowerCase()}.svg"/>`;
     }
     dom.replace('#container', '#data', '<div id="data">{html}</div>', {
         html: data
