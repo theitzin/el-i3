@@ -29,8 +29,8 @@ while True:
 	x = data[pos]
 	y = data[pos + 1]
 	icon = data[pos + 2 : x * y + pos + 2]
-	icon = map(uint_to_rgba, icon)
-	icon = np.array(list(icon)).ravel().reshape((y, x*4))
+	icon = [uint_to_rgba(p) for p in icon]
+	icon = np.array(icon).ravel().reshape((y, x*4))
 
 	file = open('icons/%s_%i_%i.png' % (name, x, y), 'wb')
 	w = png.Writer(x, y, alpha=True)
