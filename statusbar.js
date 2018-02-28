@@ -8,34 +8,17 @@ const base_window = require('./window')
 let current_window = require('electron').remote.getCurrentWindow();
 
 class Statusbar extends base_window.BaseWindow {
-    constructor() {
-        super();
-        this.initialized = false;
-        this.update_scheduled = false;
-        this.taskbar_data = {};
+    constructor(parent) {
+        super(parent);
 
-        i3.on('workspace', function(e) {
-            if (['focus', 'empty', 'init'].includes(e.change)) {
-                this.update_workspace_focus(e.current.num);
-            }
-            if (['move'].includes(e.change)) {
-                this.update('init');
-            }
-        }.bind(this));
-        i3.on('window', function(e) {
-            if (['focus'].includes(e.change)) {
-                this.update_window_focus(e.container.window);
-            }
-            else if (['new', 'close', 'move'].includes(e.change)) {
-                this.update('init');
-            }
-        }.bind(this));
+        this.set_position(false, true, 100, 0);
 
-        // not needed, start of el-i3 triggers new window event anyway
-        // $(document).ready(function() {
-        //     taskbar.update();
-        // }.bind(this));
+        this.update();   
+    }
+
+    update() {
+        this.set_content(`#${this.parent}`, '<div id="status">empty</div>')
     }
 }
 
-statusbar = new Statusbar();
+statusbar = new Statusbar('statusbar');

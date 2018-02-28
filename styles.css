@@ -3,35 +3,71 @@ body {
 	margin: 0px;
 	width: 10000px; 
 	height: 10000px;
-	background-color: #3d3937;
+	line-height: 0;
 }
 
-#container {
+#taskbar {
 	margin: 0px;
+	/*background-color: #3d3937;*/
+	background-color: #d6d8c7;
+	border-radius: 5px 5px 0px 0px;
+	float: left;
+}
+
+#statusbar {
+	margin: 0px;
+	background-color: #3d3937;
+	border-radius: 0px 0px 5px 5px;
 	float: left;
 }
 
 img {
 	display: inline-block;
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
 }
 
 .icon {
+	display: inline-block;
+	position: relative;
 }
 
 .icon_focused {
-	background: #b2aead;
+}
+
+.icon:hover {
+	/*background: #b2abab;*/
+	background: #b7b3ae;
 	-webkit-border-radius: 5px; 
-	/*border-bottom-width: 5px;
-	border-bottom-style: solid;
-	border-bottom-color: #2a5fc9;*/
 }
 
 .img_wrapper {
-	padding: 10px;
+	padding: 8px;
 	display: inline-block;
+	position: relative;
 }
 
 .img_wrapper_focused {
+
+}
+
+.img_wrapper_focused:before {
+	content: "";
+	width: 8px; 
+	height: 8px; 
+	border-radius: 4px;
+	display: inline-block;
+	/*background-color: #dbed1e;*/
+	background-color: #06996d;
+	position: absolute;
+	left: 28px;
+	bottom: -3px;
+	z-index: 10;
+}
+
+#status {
+	margin: 5px;
+	color: #dddddd;
+	font-size: 15;
+	font-family: 'Droid Sans Mono Slashed';
 }

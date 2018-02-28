@@ -14,6 +14,8 @@ class Taskbar extends base_window.BaseWindow {
         this.update_scheduled = false;
         this.taskbar_data = {};
 
+        this.set_position(false, false, 100, 0);
+
         i3.on('workspace', function(e) {
             if (['focus', 'empty', 'init'].includes(e.change)) {
                 this.update_workspace_focus(e.current.num);
@@ -31,10 +33,7 @@ class Taskbar extends base_window.BaseWindow {
             }
         }.bind(this));
 
-        // not needed, start of el-i3 triggers new window event anyway
-        // $(document).ready(function() {
-        //     taskbar.update();
-        // }.bind(this));
+        this.update('init');
     }
 
     update(state, data=null) {
@@ -49,10 +48,12 @@ class Taskbar extends base_window.BaseWindow {
         }
         else if (state == 'exec') {
             this.update_scheduled = false;
-            this.taskbar_data = {};
+            let last_workspace_num = this.taskbar_data.focused_workspace_num;
+            let last_monitor = this.taskbar_data.focused_monitor;
             let focused_id = -1;
             let focused_workspace_num = -1;
             let focused_monitor = '';
+            this.taskbar_data = {};
             let monitor_list = [];
             for (let i = 1; i < data.nodes.length; i++) {
                 let monitor = data.nodes[i].nodes[1]; // 1 is 'content' node
@@ -93,12 +94,11 @@ class Taskbar extends base_window.BaseWindow {
             if (focused_id != -1) {
                 this.update_window_focus(focused_id);
             }
-            else if (focused_workspace_num != -1) {
-                this.update_workspace_focus(focused_workspace_num, focused_monitor);
-            }
+            // else if (focused_workspace_num != -1) {
+            //     this.update_workspace_focus(focused_workspace_num, focused_monitor);
+            // }
             else {
-                // abort. not sure if this can ever happen
-                // if it can, it should be a negligible edge case
+                this.update_workspace_focus(last_workspace_num, last_monitor);
             }
         }
     }
@@ -119,7 +119,7 @@ class Taskbar extends base_window.BaseWindow {
         }
 
         // empty workspace
-        if (this.taskbar_data.workspace == null) {
+        if (this.taskbar_data.focused_workspace == null) {
             this.taskbar_data.focused_id = -1;
             this.taskbar_data.focused_workspace_num = num;
             if (monitor) {
@@ -128,7 +128,7 @@ class Taskbar extends base_window.BaseWindow {
         }
         else {
             // if not empty then update is handled by window focus update
-            return;
+            //return;
         }
 
         this.show();
@@ -146,6 +146,7 @@ class Taskbar extends base_window.BaseWindow {
                     if (win.id == id) {
                         this.taskbar_data.focused_id = id;
                         this.taskbar_data.focused_workspace = this.taskbar_data.monitors[i].workspaces[j];
+                        this.taskbar_data.focused_workspace_num = this.taskbar_data.monitors[i].workspaces[j].num;
                         this.taskbar_data.focused_monitor = this.taskbar_data.monitors[i].name;
                     }
                 }
@@ -183,11 +184,27 @@ class Taskbar extends base_window.BaseWindow {
                     src="${this.get_icon_path(win.class.toLowerCase())}"/></div>`;
             }
             this.set_content(`#${this.parent}`, data);
+            for (let i = 0; i < workspace.windows.length; i++) {
+                let win = workspace.windows[i];
+
+                // left click event
+                $(`#${win.id}`).click(this.left_click_event);
+                // right click event
+                $(`#${win.id}`).contextmenu(this.right_click_event);
+            }
         }
         else {
             this.set_content(`#${this.parent}`, 'empty');
         }
     }
+
+    left_click_event(e) {
+        let id = e.target.id;
+    }
+
+    right_click_event(e) {
+        i3.command(`[id="${e.target.id}"] kill`);
+    }
 }
 
-taskbar = new Taskbar('container');
+taskbar = new Taskbar('taskbar');

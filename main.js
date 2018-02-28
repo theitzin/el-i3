@@ -9,30 +9,53 @@ const url = require('url')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+let taskbar_window
+let statusbar_window
 
-function create_window () {
-    mainWindow = new BrowserWindow({
-        width: 400, 
-        height: 100,
+function create_taskbar_window () {
+    taskbar_window = new BrowserWindow({
+        width: 200, 
+        height: 50,
         type: 'utility',
         frame: false
     });
 
-    mainWindow.loadURL(url.format({
+    taskbar_window.loadURL(url.format({
         pathname: path.join(__dirname, 'taskbar.html'),
         protocol: 'file:',
         slashes: true
     }))
 
-    mainWindow.webContents.openDevTools()
+    taskbar_window.webContents.openDevTools()
 
-    mainWindow.on('closed', function () {
-        mainWindow = null
+    taskbar_window.on('closed', function () {
+        taskbar_window = null
     })
 }
 
-app.on('ready', create_window)
+function create_statusbar_window () {
+    statusbar_window = new BrowserWindow({
+        width: 200, 
+        height: 50,
+        type: 'utility',
+        frame: false
+    });
+
+    statusbar_window.loadURL(url.format({
+        pathname: path.join(__dirname, 'statusbar.html'),
+        protocol: 'file:',
+        slashes: true
+    }))
+
+    //statusbar_window.webContents.openDevTools()
+
+    statusbar_window.on('closed', function () {
+        statusbar_window = null
+    })
+}
+
+app.on('ready', create_taskbar_window)
+app.on('ready', create_statusbar_window)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

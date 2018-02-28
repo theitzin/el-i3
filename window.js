@@ -8,11 +8,11 @@ class BaseWindow {
         this.parent = parent;
         this.content = '';
 
-        this.width = 500;
-        this.height = 200;
-        this.left_align = false; // false means right align
-        this.top_align = false; // false means bottom align
-        this.horizontal_margin = 100;
+        this.width = 200;
+        this.height = 50;
+        this.left_align = true; // false means right align
+        this.top_align = true; // false means bottom align
+        this.horizontal_margin = 0;
         this.vertical_margin = 0;
 
         this.monitor = 'eDP1';
@@ -39,8 +39,8 @@ class BaseWindow {
     }
 
     set_size(width, height) {
-        this.width = width;
-        this.height = height;
+        this.width = Math.round(width);
+        this.height = Math.round(height);
         this.update_window_position();
     }
 
