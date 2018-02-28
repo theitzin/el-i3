@@ -15,13 +15,12 @@ function create_window () {
     mainWindow = new BrowserWindow({
         width: 400, 
         height: 100,
-        type: 'dialog',
+        type: 'utility',
         frame: false
     });
 
-      // and load the index.html of the app.
     mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, 'index.html'),
+        pathname: path.join(__dirname, 'taskbar.html'),
         protocol: 'file:',
         slashes: true
     }))

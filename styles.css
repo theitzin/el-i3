@@ -1,13 +1,37 @@
+body {
+	overflow: hidden;
+	margin: 0px;
+	width: 10000px; 
+	height: 10000px;
+	background-color: #3d3937;
+}
+
+#container {
+	margin: 0px;
+	float: left;
+}
+
 img {
+	display: inline-block;
     width: 64px;
     height: 64px;
 }
 
 .icon {
-	background: #FFFFFF;
-	margin: 5px;
 }
 
 .icon_focused {
-	background: #AACCAA;
+	background: #b2aead;
+	-webkit-border-radius: 5px; 
+	/*border-bottom-width: 5px;
+	border-bottom-style: solid;
+	border-bottom-color: #2a5fc9;*/
+}
+
+.img_wrapper {
+	padding: 10px;
+	display: inline-block;
+}
+
+.img_wrapper_focused {
 }
