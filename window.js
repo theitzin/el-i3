@@ -1,4 +1,5 @@
 const electron = require('electron');
+const { exec } = require('child_process');
 const $ = require('jquery')
 ;
 class BaseWindow {
@@ -15,10 +16,17 @@ class BaseWindow {
         this.horizontal_margin = 0;
         this.vertical_margin = 0;
 
+        // some initialization because screen_map update is async
+        this.screen_map = {
+            'eDP1' : {
+                width: 1920,
+                height: 1080,
+                x_offset: 0,
+                y_offset: 0
+            }
+        };
         this.monitor = 'eDP1';
-        this.screen_width;
-        this.screen_height;
-        this.set_monitor(this.monitor);
+        this.set_screen_map();        
     }
 
     set_position(left_align, top_align, horizontal_margin, vertical_margin) {
@@ -29,41 +37,67 @@ class BaseWindow {
         this.update_window_position()
     }
 
-    set_monitor(monitor) {
-        // select correct monitor
-        let screen = electron.screen.getPrimaryDisplay();
-        this.screen_width = screen.size.width;
-        this.screen_height = screen.size.height;
-        this.monitor = monitor;
-        this.update_window_position();
+    set_screen_map() {
+        exec('xrandr | grep " connected "', function(error, stdout, stderr) {
+            if (error) {
+                console.log('error generating screen offset map');
+                return
+            }
+            this.screen_map = {};
+            for (let line of stdout.split('\n')) {
+                if (line.length == 0)
+                    continue;
+                let parts = line.split(' ');
+                let info = (parts[2] == 'primary') ? parts[3] : parts[2];
+                info = info.split(/[x\+]/);
+
+                this.screen_map[parts[0]] = {
+                    width: parseInt(info[0]),
+                    height: parseInt(info[1]),
+                    x_offset: parseInt(info[2]),
+                    y_offset: parseInt(info[3])
+                }
+            }
+        }.bind(this));
     }
 
-    set_size(width, height) {
-        this.width = Math.round(width);
-        this.height = Math.round(height);
-        this.update_window_position();
-    }
-
-    set_content(selector, content, noupdate=false) {
+    set_content(selector, content, monitor, noupdate=false) {
         this.content = content;
         $(selector).html(this.content);
+
         if (!noupdate) {
-            this.set_size($(`#${this.parent}`).width(), $(`#${this.parent}`).height());
+            this.width = Math.round($(`#${this.parent}`).width());
+            this.height = Math.round($(`#${this.parent}`).height());
+
+            if (!(monitor in this.screen_map)) {
+                this.set_screen_map();
+            }
+            if (!(monitor in this.screen_map)) {
+                // still not element => ignore
+                return;
+            }
+            this.monitor = monitor;
+
+            this.update_window_position();
         }
     }
 
     update_window_position() {
         let position_x;
         let position_y;
+
         if (this.left_align)
             position_x = this.horizontal_margin;
         else
-            position_x = this.screen_width - this.width - this.horizontal_margin;
+            position_x = this.screen_map[this.monitor].width - this.width - this.horizontal_margin;
 
         if (this.top_align)
             position_y = this.vertical_margin;
         else
-            position_y = this.screen_height - this.height - this.vertical_margin;
+            position_y = this.screen_map[this.monitor].height - this.height - this.vertical_margin;
+
+        position_x += this.screen_map[this.monitor].x_offset;
+        position_y += this.screen_map[this.monitor].y_offset;
 
         this.window_instance.setBounds({
             x: position_x,

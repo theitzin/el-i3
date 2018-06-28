@@ -17,7 +17,7 @@ class Statusbar extends base_window.BaseWindow {
     }
 
     update() {
-        this.set_content(`#${this.parent}`, '<div id="status">empty</div>')
+        this.set_content(`#${this.parent}`, '<div id="status">empty</div>', 'eDP1');
     }
 }
 

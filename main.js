@@ -17,6 +17,7 @@ function create_taskbar_window () {
         width: 200, 
         height: 50,
         type: 'utility',
+        //transparant: true,
         frame: false
     });
 
@@ -38,6 +39,7 @@ function create_statusbar_window () {
         width: 200, 
         height: 50,
         type: 'utility',
+        //transparant: true,
         frame: false
     });
 
@@ -55,7 +57,7 @@ function create_statusbar_window () {
 }
 
 app.on('ready', create_taskbar_window)
-app.on('ready', create_statusbar_window)
+// app.on('ready', create_statusbar_window)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

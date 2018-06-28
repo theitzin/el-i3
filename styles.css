@@ -1,4 +1,9 @@
+html {
+	border-radius: 5px 5px 0px 0px;
+}
+
 body {
+	background: #FFFFFF;
 	overflow: hidden;
 	margin: 0px;
 	width: 10000px; 

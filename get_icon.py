@@ -12,7 +12,7 @@ def get_data(id):
 	name = subprocess.run(['xprop', '-id', id, 'WM_CLASS'], stdout=subprocess.PIPE)
 	name = name.stdout.decode('utf-8')[19:].split(',')[-1].strip().replace('"', '')
 
-	# default len to small to get icon >128x128 in size
+	# default len too small to get icon >128x128 in size
 	result = subprocess.run(['xprop', '-id', id, '-len', '1000000', '-notype', '32c', '_NET_WM_ICON'], stdout=subprocess.PIPE)
 	result = result.stdout.decode('utf-8')[15:]
 	
