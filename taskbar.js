@@ -3,6 +3,7 @@ const i3 = require('i3').createClient();
 const $ = require('jquery');
 
 const base_window = require('./window')
+const wm_interface = require('./interface')
 
 let current_window = require('electron').remote.getCurrentWindow();
 
@@ -11,6 +12,7 @@ class Taskbar extends base_window.BaseWindow {
 		super(parent);
 		this.initialized = false;
 		this.update_scheduled = false;
+		this.interface = new wm_interface.i3Interface();
 		this.taskbar_data = {};
 
 		this.set_position(false, false, 100, 0);
@@ -20,7 +22,7 @@ class Taskbar extends base_window.BaseWindow {
 				this.update_workspace_focus(e.current.num);
 			}
 			if (['move'].includes(e.change)) {
-				this.update('init');
+				this.update();
 			}
 		}.bind(this));
 		i3.on('window', function(e) {
@@ -28,80 +30,18 @@ class Taskbar extends base_window.BaseWindow {
 				this.update_window_focus(e.container.window);
 			}
 			else if (['new', 'close', 'move'].includes(e.change)) {
-				this.update('init');
+				this.update();
 			}
 		}.bind(this));
 
 		this.update('init');
 	}
 
-	update(state, data=null) {
-		if (state == 'init') {
-			if (this.update_scheduled) {
-				// avoid unnecessary i3 calls
-				return;
-			}
-			this.update_scheduled = true;
-			i3.tree((...args) => {
-				// first argument seems to always be null
-				this.update('exec', args[1]);
-			});
-		}
-		else if (state == 'exec') {
-			this.update_scheduled = false;
-			let last_workspace_num = this.taskbar_data.focused_workspace_num;
-			let last_monitor = this.taskbar_data.focused_monitor;
-			let focused_id = -1;
-			let focused_workspace_num = -1;
-			let focused_monitor = '';
-			this.taskbar_data = {};
-			let monitor_list = [];
-			for (let i = 1; i < data.nodes.length; i++) {
-				let monitor = data.nodes[i].nodes[1]; // 1 is 'content' node
-				let monitor_data = {};
-				monitor_data.name = data.nodes[i].name;
-				let workspace_list = [];
-				for (let j = 0; j < monitor.nodes.length; j++) {
-					let workspace = monitor.nodes[j];
-					let workspace_data = {};
-					workspace_data.num = workspace.num;
-					let window_list = [];
-					for (let k = 0; k < workspace.nodes.length; k++) {
-						let win = workspace.nodes[k];
-						let window_data = {};
-						window_data.class = win.window_properties.class;
-						window_data.id = win.window;
-						window_data.title = win.name;
-						window_list.push(window_data);
-
-						if (win.focused) {
-							focused_id = window_data.id;
-						}
-					}
-					workspace_data.windows = window_list;
-					workspace_list.push(workspace_data);
-
-					if (workspace.focused) {
-						focused_workspace_num = workspace.num;
-						focused_monitor = data.nodes[i].name;
-					}
-				}
-				monitor_data.workspaces = workspace_list;
-				monitor_list.push(monitor_data);
-			}
-			this.taskbar_data.monitors = monitor_list;
-
-			this.initialized = true;
-			if (focused_id != -1) {
-				this.update_window_focus(focused_id);
-			}
-			// else if (focused_workspace_num != -1) {
-			//     this.update_workspace_focus(focused_workspace_num, focused_monitor);
-			// }
-			else {
-				this.update_workspace_focus(last_workspace_num, last_monitor);
-			}
-		}
+	update() {
+		this.interface.update_all().then((data) => {
+			this.taskbar_data = data;
+			this.show();
+		});
 	}
 
 	update_workspace_focus(num, monitor=null) {
@@ -167,12 +107,9 @@ class Taskbar extends base_window.BaseWindow {
 	}
 
 	show() {
-		if (!this.initialized) {
-			this.update('init');
-			return;
-		}
 
 		let workspace = this.taskbar_data.focused_workspace;
+		console.log(this.taskbar_data);
 		if (workspace) {
 			let data = '';
 			for (let i = 0; i < workspace.windows.length; i++) {
