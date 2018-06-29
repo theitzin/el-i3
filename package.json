@@ -1,6 +1,6 @@
 {
   "name": "el-i3",
-  "version": "1.0.0",
+  "version": "1.7.15",
   "description": "electron i3 interface",
   "main": "main.js",
   "scripts": {

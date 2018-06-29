@@ -16,7 +16,7 @@ function create_taskbar_window () {
     taskbar_window = new BrowserWindow({
         width: 200, 
         height: 50,
-        type: 'utility',
+        type: 'utility', // 'splash',
         //transparant: true,
         frame: false
     });

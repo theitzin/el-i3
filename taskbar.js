@@ -1,100 +1,19 @@
 const fs = require('fs');
-const i3 = require('i3').createClient();
 const $ = require('jquery');
 
 const base_window = require('./window')
 const wm_interface = require('./interface')
-
-let current_window = require('electron').remote.getCurrentWindow();
+const html_templates = require('./templates')
 
 class Taskbar extends base_window.BaseWindow {
 	constructor(parent) {
 		super(parent);
-		this.initialized = false;
-		this.update_scheduled = false;
+
 		this.interface = new wm_interface.i3Interface();
-		this.taskbar_data = {};
+		this.interface.on('update', (data) => this.update_apps(data));
+		setInterval(() => this.update_info(), 1000); // call every second
 
 		this.set_position(false, false, 100, 0);
-
-		i3.on('workspace', function(e) {
-			if (['focus', 'empty', 'init'].includes(e.change)) {
-				this.update_workspace_focus(e.current.num);
-			}
-			if (['move'].includes(e.change)) {
-				this.update();
-			}
-		}.bind(this));
-		i3.on('window', function(e) {
-			if (['focus'].includes(e.change)) {
-				this.update_window_focus(e.container.window);
-			}
-			else if (['new', 'close', 'move'].includes(e.change)) {
-				this.update();
-			}
-		}.bind(this));
-
-		this.update('init');
-	}
-
-	update() {
-		this.interface.update_all().then((data) => {
-			this.taskbar_data = data;
-			this.show();
-		});
-	}
-
-	update_workspace_focus(num, monitor=null) {
-		if (this.update_scheduled || !this.initialized) {
-			return;
-		}
-
-		this.taskbar_data.focused_workspace = null;
-		for (let i = 0; i < this.taskbar_data.monitors.length; i++) {
-			for (let j = 0; j < this.taskbar_data.monitors[i].workspaces.length; j++) {
-				if (num == this.taskbar_data.monitors[i].workspaces[j].num 
-					&& this.taskbar_data.monitors[i].workspaces[j].windows.length != 0) {
-					this.taskbar_data.focused_workspace = this.taskbar_data.monitors[i].workspaces[j];
-				}
-			}
-		}
-
-		// empty workspace
-		if (this.taskbar_data.focused_workspace == null) {
-			this.taskbar_data.focused_id = -1;
-			this.taskbar_data.focused_workspace_num = num;
-			if (monitor) {
-				this.taskbar_data.focused_monitor = monitor;
-			}
-		}
-		else {
-			// if not empty then update is handled by window focus update
-			//return;
-		}
-
-		this.show();
-	}
-
-	update_window_focus(id) {
-		if (this.update_scheduled || !this.initialized) {
-			return;
-		}
-
-		for (let i = 0; i < this.taskbar_data.monitors.length; i++) {
-			for (let j = 0; j < this.taskbar_data.monitors[i].workspaces.length; j++) {
-				for (let k = 0; k < this.taskbar_data.monitors[i].workspaces[j].windows.length; k++) {
-					let win = this.taskbar_data.monitors[i].workspaces[j].windows[k];
-					if (win.id == id) {
-						this.taskbar_data.focused_id = id;
-						this.taskbar_data.focused_workspace = this.taskbar_data.monitors[i].workspaces[j];
-						this.taskbar_data.focused_workspace_num = this.taskbar_data.monitors[i].workspaces[j].num;
-						this.taskbar_data.focused_monitor = this.taskbar_data.monitors[i].name;
-					}
-				}
-			}
-		}
-
-		this.show();
 	}
 
 	get_icon_path(name) {
@@ -106,42 +25,47 @@ class Taskbar extends base_window.BaseWindow {
 		}
 	}
 
-	show() {
+	update_apps(data) {
+		let workspace = data.focus.workspace;
+		let display = data.focus.display.name;
 
-		let workspace = this.taskbar_data.focused_workspace;
-		console.log(this.taskbar_data);
 		if (workspace) {
-			let data = '';
-			for (let i = 0; i < workspace.windows.length; i++) {
-				let win = workspace.windows[i];
-				let focused = win.id == this.taskbar_data.focused_id;
-
-				data += `<div class="img_wrapper ${focused ? 'img_wrapper_focused' : ''}"><img
-					id="${win.id}" 
-					class="icon ${focused ? 'icon_focused' : ''}" 
-					src="${this.get_icon_path(win.class.toLowerCase())}"/></div>`;
+			let html = '';
+			for (let win of workspace.windows) {
+				if (!win.id || !win.class) {
+					html += html_templates.taskbar_icon(
+						this.get_default_icon_path(), -1, false, 1);	
+				} else {
+					let focused = win.id == data.focus.window.id;
+					html += html_templates.taskbar_icon (
+						this.get_icon_path(win.class.toLowerCase()), win.id, focused, 1);
+				}
 			}
-			this.set_content(`#${this.parent}`, data, this.taskbar_data.focused_monitor);
-			for (let i = 0; i < workspace.windows.length; i++) {
-				let win = workspace.windows[i];
+			this.interface.move(workspace.num);
+			this.set_content('#app_container', html, display);
 
-				// left click event
-				$(`#${win.id}`).click(this.left_click_event);
-				// right click event
-				$(`#${win.id}`).contextmenu(this.right_click_event);
+			for (let win of workspace.windows) {
+				$(`#${win.id}`).click(e => {
+					let id = e.target.id;
+				});
+				$(`#${win.id}`).contextmenu(e => {
+					this.interface.kill_window(e.target.id);			
+				});
 			}
-		}
-		else {
-			this.set_content(`#${this.parent}`, 'empty', this.taskbar_data.focused_monitor);
+		} else if ($.isEmptyObject(data.focus)) {
+			// hopefully only happens during initialization
+			return
+		} else {
+			this.set_content('#app_container', 'empty', display);
 		}
 	}
 
-	left_click_event(e) {
-		let id = e.target.id;
-	}
+	update_info() {
+		let date = new Date().toISOString(). 	// formatted as '2012-11-04T14:51:06.157Z'
+		  	replace(/T/, ' ').      			// replace T with a space
+		  	replace(/\..+/, '');    			// delete the dot and everything after
 
-	right_click_event(e) {
-		i3.command(`[id="${e.target.id}"] kill`);
+		this.set_content('#info_container', date);
 	}
 }
 

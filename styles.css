@@ -19,6 +19,16 @@ body {
 	float: left;
 }
 
+#app_container {
+	display: inline-block;
+}
+
+#info_container {
+	display: inline-block;
+	vertical-align: top;
+	padding: 20px;
+}
+
 #statusbar {
 	margin: 0px;
 	background-color: #3d3937;

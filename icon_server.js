@@ -9,6 +9,10 @@ class IconServer {
 		this.default_path = 'icons/papirus/xfce_unknown.svg';
 	}
 
+	get_default_icon_path() {
+		return this.default_path;
+	}
+
 	get_icon_path(name, id) {
 		return new Promise((respond, reject) => {
 			if (name in this.path_index) {

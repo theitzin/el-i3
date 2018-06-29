@@ -3,111 +3,115 @@ const { exec } = require('child_process');
 const $ = require('jquery')
 ;
 class BaseWindow {
-    constructor(parent) {
-        this.window_instance = require('electron').remote.getCurrentWindow();
+	constructor(parent) {
+		this.window_instance = require('electron').remote.getCurrentWindow();
 
-        this.parent = parent;
-        this.content = '';
+		this.parent = parent;
+		this.content = '';
 
-        this.width = 200;
-        this.height = 50;
-        this.left_align = true; // false means right align
-        this.top_align = true; // false means bottom align
-        this.horizontal_margin = 0;
-        this.vertical_margin = 0;
+		this.width = 200;
+		this.height = 50;
+		this.left_align = true; // false means right align
+		this.top_align = true; // false means bottom align
+		this.horizontal_margin = 0;
+		this.vertical_margin = 0;
 
-        // some initialization because screen_map update is async
-        this.screen_map = {
-            'eDP1' : {
-                width: 1920,
-                height: 1080,
-                x_offset: 0,
-                y_offset: 0
-            }
-        };
-        this.monitor = 'eDP1';
-        this.set_screen_map();        
-    }
+		// some initialization because screen_map update is async
+		this.screen_map = {
+			'eDP1' : {
+				width: 1920,
+				height: 1080,
+				x_offset: 0,
+				y_offset: 0
+			}
+		};
+		this.display = 'eDP1';
+		this.set_screen_map();        
+	}
 
-    set_position(left_align, top_align, horizontal_margin, vertical_margin) {
-        this.left_align = left_align;
-        this.top_align = top_align;
-        this.horizontal_margin = horizontal_margin;
-        this.vertical_margin = vertical_margin;
-        this.update_window_position()
-    }
+	set_position(left_align, top_align, horizontal_margin, vertical_margin) {
+		this.left_align = left_align;
+		this.top_align = top_align;
+		this.horizontal_margin = horizontal_margin;
+		this.vertical_margin = vertical_margin;
+		this.update_window_position()
+	}
 
-    set_screen_map() {
-        exec('xrandr | grep " connected "', function(error, stdout, stderr) {
-            if (error) {
-                console.log('error generating screen offset map');
-                return
-            }
-            this.screen_map = {};
-            for (let line of stdout.split('\n')) {
-                if (line.length == 0)
-                    continue;
-                let parts = line.split(' ');
-                let info = (parts[2] == 'primary') ? parts[3] : parts[2];
-                info = info.split(/[x\+]/);
+	set_screen_map() {
+		exec('xrandr | grep " connected "', function(error, stdout, stderr) {
+			if (error) {
+				console.log('error generating screen offset map');
+				return
+			}
+			this.screen_map = {};
+			for (let line of stdout.split('\n')) {
+				if (line.length == 0)
+					continue;
+				let parts = line.split(' ');
+				let info = (parts[2] == 'primary') ? parts[3] : parts[2];
+				info = info.split(/[x\+]/);
 
-                this.screen_map[parts[0]] = {
-                    width: parseInt(info[0]),
-                    height: parseInt(info[1]),
-                    x_offset: parseInt(info[2]),
-                    y_offset: parseInt(info[3])
-                }
-            }
-        }.bind(this));
-    }
+				this.screen_map[parts[0]] = {
+					width: parseInt(info[0]),
+					height: parseInt(info[1]),
+					x_offset: parseInt(info[2]),
+					y_offset: parseInt(info[3])
+				}
+			}
+		}.bind(this));
+	}
 
-    set_content(selector, content, monitor, noupdate=false) {
-        this.content = content;
-        $(selector).html(this.content);
+	set_content(selector, content, display=null, noupdate=false) {
+		this.content = content;
+		$(selector).html(this.content);
 
-        if (!noupdate) {
-            this.width = Math.round($(`#${this.parent}`).width());
-            this.height = Math.round($(`#${this.parent}`).height());
+		if (noupdate) {
+			return
+		}
 
-            if (!(monitor in this.screen_map)) {
-                this.set_screen_map();
-            }
-            if (!(monitor in this.screen_map)) {
-                // still not element => ignore
-                return;
-            }
-            this.monitor = monitor;
+		this.width = Math.round($(`#${this.parent}`).width());
+		this.height = Math.round($(`#${this.parent}`).height());
 
-            this.update_window_position();
-        }
-    }
+		if (display) {
+			if (!(display in this.screen_map)) {
+				this.set_screen_map();
+			}
+			if (!(display in this.screen_map)) {
+				// still not element => ignore
+				return;
+			}
+			this.display = display;
+		}
 
-    update_window_position() {
-        let position_x;
-        let position_y;
+		this.update_window_position();
+	}
 
-        if (this.left_align)
-            position_x = this.horizontal_margin;
-        else
-            position_x = this.screen_map[this.monitor].width - this.width - this.horizontal_margin;
+	update_window_position() {
+		let position_x;
+		let position_y;
 
-        if (this.top_align)
-            position_y = this.vertical_margin;
-        else
-            position_y = this.screen_map[this.monitor].height - this.height - this.vertical_margin;
+		if (this.left_align)
+			position_x = this.horizontal_margin;
+		else
+			position_x = this.screen_map[this.display].width - this.width - this.horizontal_margin;
 
-        position_x += this.screen_map[this.monitor].x_offset;
-        position_y += this.screen_map[this.monitor].y_offset;
+		if (this.top_align)
+			position_y = this.vertical_margin;
+		else
+			position_y = this.screen_map[this.display].height - this.height - this.vertical_margin;
 
-        this.window_instance.setBounds({
-            x: position_x,
-            y: position_y,
-            width: this.width, 
-            height: this.height
-        });
-    }
+		position_x += this.screen_map[this.display].x_offset;
+		position_y += this.screen_map[this.display].y_offset;
+
+		this.window_instance.setBounds({
+			x: position_x,
+			y: position_y,
+			width: this.width, 
+			height: this.height
+		});
+	}
 }
 
 module.exports = {
-    BaseWindow : BaseWindow
+	BaseWindow : BaseWindow
 }
