@@ -1,0 +1,145 @@
+html {
+	border-radius: 5px 5px 0px 0px;
+}
+
+body {
+	background: #FFFFFF;
+	overflow: hidden;
+	margin: 0px;
+	width: 10000px; 
+	height: 10000px;
+	user-select: none;
+}
+
+#taskbar {
+	margin: 0px;
+	background-color: #3d3937;
+	/*background-color: #d6d8c7;*/
+	border-radius: 5px 5px 0px 0px;
+	float: left;
+}
+
+#app_container {
+	display: inline-block;
+}
+
+#info_container {
+	/*height: 39px; /*hack.. assuming app icons are 64px*/
+	display: inline-block;
+	vertical-align: top;
+	/*color: #404040;*/
+	color: #d0d0d0;
+}
+
+#info_icon_container {
+	float: right;
+	margin: 0px 10px 0px 10px;
+}
+
+.info_icon {
+	display: inline-block;
+	line-height: initial;
+	margin-left: 4px;
+}
+
+.info_icon_collection {
+	display: inline-block;
+	line-height: initial;
+	margin-left: 4px;
+	color: #3d3937;
+	background-color: #d0d0d0;
+	border-radius: 9px;
+	padding: 0px 4px 0px 4px;
+}
+
+.mdi {
+	font-size: 16px;
+	cursor: pointer;
+}
+
+#datetime_container {
+	float: right;
+	margin: 5px 10px 0px 10px;
+}
+
+#datetime_container * {
+	display: inline-block;
+	font-family: Roboto, sans-serif;
+	font-weight: 400;
+}
+
+#datetime_date {
+	font-size: 15px;
+}
+
+#datetime_time {
+	min-width: 92px; /*avoid width change every second*/
+}
+
+#datetime_time_hm {
+	font-size: 28px;
+}
+
+#datetime_time_s {
+	margin-left: -3px;
+	font-size: 15px;
+}
+
+#statusbar {
+	margin: 0px;
+	background-color: #3d3937;
+	border-radius: 0px 0px 5px 5px;
+	float: left;
+}
+
+img {
+	display: inline-block;
+    width: 48px;
+    height: 48px;
+}
+
+.icon {
+	display: inline-block;
+	position: relative;
+}
+
+.icon_focused {
+}
+
+.icon_wrapper {
+	cursor: pointer;
+	vertical-align: top;
+	line-height: 0;
+	padding: 8px;
+	display: inline-block;
+	position: relative;
+}
+
+.icon_wrapper:hover {
+	padding: 6px 8px 10px 8px;
+}
+
+.icon_wrapper_focused {
+
+}
+
+.icon_wrapper_focused:before {
+	content: "";
+	width: 8px; 
+	height: 8px; 
+	border-radius: 4px;
+	display: inline-block;
+	/*background-color: #dbed1e;*/
+	background-color: #06996d;
+	position: absolute;
+	left: 28px;
+	bottom: -3px;
+	z-index: 10;
+}
+
+#status {
+	margin: 5px;
+	color: #dddddd;
+	font-size: 15;
+	font-family: 'Droid Sans Mono Slashed';
+}

@@ -2,13 +2,17 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<link rel="stylesheet" type="text/css" href="styles.css">
+		<link rel="stylesheet" type="text/css" href="css/styles.css">
+		<link href="status_icons/css/materialdesignicons.min.css" media="all" rel="stylesheet" type="text/css" />
 		<title>el-i3</title>
 	</head>
 	<body>
 		<div id='taskbar'>
 			<div id='app_container'></div>
-			<div id='info_container'></div>
+			<div id='info_container'>
+				<div id='datetime_container'></div><br>
+				<div id='info_icon_container'></div>
+			</div>
 		</div>
 		<script>
 			require('./taskbar.js')

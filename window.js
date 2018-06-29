@@ -61,14 +61,7 @@ class BaseWindow {
 		}.bind(this));
 	}
 
-	set_content(selector, content, display=null, noupdate=false) {
-		this.content = content;
-		$(selector).html(this.content);
-
-		if (noupdate) {
-			return
-		}
-
+	update_window_position(display=null) {
 		this.width = Math.round($(`#${this.parent}`).width());
 		this.height = Math.round($(`#${this.parent}`).height());
 
@@ -83,10 +76,6 @@ class BaseWindow {
 			this.display = display;
 		}
 
-		this.update_window_position();
-	}
-
-	update_window_position() {
 		let position_x;
 		let position_y;
 
