@@ -3,7 +3,7 @@ const $ = require('jquery');
 const events = require('events');
 
 // should implement event 'update'
-class Interface extends events.EventEmitter {
+class WMInterface extends events.EventEmitter {
 	constructor() {
 		super();
 	}
@@ -13,7 +13,7 @@ class Interface extends events.EventEmitter {
 	// get_tree() { throw new Error('not implemented in base class'); }
 }
 
-class i3Interface extends Interface {
+class i3Interface extends WMInterface {
 	constructor() {
 		super();
 

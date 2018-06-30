@@ -34,30 +34,7 @@ function create_taskbar_window () {
     })
 }
 
-function create_statusbar_window () {
-    statusbar_window = new BrowserWindow({
-        width: 200, 
-        height: 50,
-        type: 'utility',
-        //transparant: true,
-        frame: false
-    });
-
-    statusbar_window.loadURL(url.format({
-        pathname: path.join(__dirname, 'statusbar.html'),
-        protocol: 'file:',
-        slashes: true
-    }))
-
-    //statusbar_window.webContents.openDevTools()
-
-    statusbar_window.on('closed', function () {
-        statusbar_window = null
-    })
-}
-
 app.on('ready', create_taskbar_window)
-// app.on('ready', create_statusbar_window)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

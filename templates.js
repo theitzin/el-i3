@@ -13,7 +13,7 @@ function taskbar_icon(icon_path, window_id, focused, number_instances) {
 
 function date_time() {
 	let dt = datetime.create();
-	let date = dt.format('w, f d');
+	let date = dt.format('W, f d');
 	let time_hm = dt.format('H:M');
 	let time_s = dt.format(':S');
 
@@ -58,22 +58,20 @@ function info_icon(id, icon_name) {
 	return html;
 }
 
-function info_icon_collection(id, icon_names) {
-	let inner_html = [];
-	for (let icon_id in icon_names) {
-		inner_html.push(`<i id="${icon_id}" class="mdi mdi-${icon_names[icon_id]}"></i>`);
-	}
+function info_container(id) {
+	let html = `<div id="${id}" class="info_container"></div>`;
+	return html;	
+}
 
-	let html = `<div id="${id}" class="info_icon_collection">
-					${inner_html.join('')}
+function info_slider(id) {
+	let html = `<div id="${id}" class="info_slider">
+  					<input type="range" min="1" max="100" class="slider">
 				</div>`;
 	return html;
 }
 
-function info_icon_slider(id) {
-	let html = `<div id="${id}" class="info_icon_collection">
-					slider
-				</div>`;
+function info_label(id, text='') {
+	let html = `<div id="${id}" class="info_label">${text}</div>`;
 	return html;
 }
 
@@ -82,6 +80,7 @@ module.exports = {
 	taskbar_icon : taskbar_icon,
 	date_time : date_time,
 	info_icon : info_icon,
-	info_icon_collection : info_icon_collection,
-	info_icon_slider : info_icon_slider
+	info_container : info_container,
+	info_slider : info_slider,
+	info_label : info_label
 }

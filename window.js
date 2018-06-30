@@ -62,8 +62,16 @@ class BaseWindow {
 	}
 
 	update_window_position(display=null) {
-		this.width = Math.round($(`#${this.parent}`).width());
-		this.height = Math.round($(`#${this.parent}`).height());
+		let width = Math.round($(`#${this.parent}`).width());
+		let height = Math.round($(`#${this.parent}`).height());
+
+		if (this.width == width &&	this.height == height 
+			&& (!display || display == this.display)) {
+			return;
+		}
+
+		this.width = width;
+		this.height = height;
 
 		if (display) {
 			if (!(display in this.screen_map)) {
