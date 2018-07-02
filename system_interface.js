@@ -8,7 +8,11 @@ class SystemInterface {
 	network_status() {}
 	cpu_load() {}
 	memory_use() {}
-	disk_free() {}
+	disk_space() {}
+	display_layout() {}
+	power_action() {}
+	launch_filemanager() {}
+	mail() {}
 }
 
 module.exports = {

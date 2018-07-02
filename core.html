@@ -8,14 +8,12 @@
 	</head>
 	<body>
 		<div id="core">
-			<div class="bar"></div>
-			<div class="status">
-				<div id="datetime_wrapper"></div><br>
-				<div id="icon_wrapper"></div>
-			</div>
+			<div id="core_bar" class="bar"></div>
+			<div id="core_status" class="status"></div>
 		</div>
+		<div id="inactive_modules"></div>
 		<script>
-			require("./taskbar.js")
+			require("./core.js")
 		</script>
 	</body>
 </html>

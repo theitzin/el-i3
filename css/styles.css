@@ -11,18 +11,22 @@ body {
 	user-select: none;
 }
 
-#taskbar {
+#core {
 	margin: 0px;
 	background-color: #3d3937;
 	border-radius: 5px 5px 0px 0px;
 	float: left;
 }
 
-#app_wrapper {
+#inactive_modules {
+	visibility: hidden;
+}
+
+.bar {
 	display: inline-block;
 }
 
-#info_wrapper {
+.status {
 	display: inline-block;
 	vertical-align: top;
 	color: #d0d0d0;
@@ -63,6 +67,7 @@ body {
 	display: inline-block;
 	font-size: 13px;
 	margin-top: -1px;
+	margin-left: 4px;
 	vertical-align: top;
 }
 
@@ -94,6 +99,10 @@ body {
     border-radius: 50%;
     background: #3d3937;
     cursor: pointer;
+}
+
+#power_container_restart_confirm, #power_container_shutdown_confirm {
+	cursor: pointer;
 }
 
 #datetime_wrapper {

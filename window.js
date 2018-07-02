@@ -1,6 +1,6 @@
 const electron = require('electron');
 const { exec } = require('child_process');
-const $ = require('jquery')
+const $ = require('jquery');
 ;
 class BaseWindow {
 	constructor(parent) {
@@ -62,8 +62,8 @@ class BaseWindow {
 	}
 
 	update_window_position(display=null) {
-		let width = Math.round($(`#${this.parent}`).width());
-		let height = Math.round($(`#${this.parent}`).height());
+		let width = Math.round($(this.parent).width());
+		let height = Math.round($(this.parent).height());
 
 		if (this.width == width &&	this.height == height 
 			&& (!display || display == this.display)) {

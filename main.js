@@ -1,19 +1,18 @@
-const electron = require('electron')
+const electron = require('electron');
 // Module to control application life.
-const app = electron.app
+const app = electron.app;
 // Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
+const BrowserWindow = electron.BrowserWindow;
 
-const path = require('path')
-const url = require('url')
+const path = require('path');
+const url = require('url');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let taskbar_window
-let statusbar_window
+let bar_window
 
-function create_taskbar_window () {
-    taskbar_window = new BrowserWindow({
+function create_window () {
+    bar_window = new BrowserWindow({
         width: 200, 
         height: 50,
         type: 'utility', // 'splash',
@@ -21,25 +20,21 @@ function create_taskbar_window () {
         frame: false
     });
 
-    taskbar_window.loadURL(url.format({
-        pathname: path.join(__dirname, 'taskbar.html'),
+    bar_window.loadURL(url.format({
+        pathname: path.join(__dirname, 'core.html'),
         protocol: 'file:',
         slashes: true
     }))
 
-    taskbar_window.webContents.openDevTools()
+    bar_window.webContents.openDevTools()
 
-    taskbar_window.on('closed', function () {
-        taskbar_window = null
+    bar_window.on('closed', function () {
+        bar_window = null
     })
 }
 
-app.on('ready', create_taskbar_window)
+app.on('ready', create_window)
 
-// Quit when all windows are closed.
 app.on('window-all-closed', function () {
     app.quit()
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.

@@ -1,4 +1,4 @@
-const datetime = require('node-datetime')
+const datetime = require('node-datetime');
 // provides HTML templates
 
 function taskbar_icon(icon_path, window_id, focused, number_instances) {
@@ -6,8 +6,8 @@ function taskbar_icon(icon_path, window_id, focused, number_instances) {
 	let icon_focused_class = focused ? 'icon_focused' : '';
 
     let html = `<div class="icon_wrapper ${wrapper_focused_class}">
-    			<img id="${window_id}" class="icon ${icon_focused_class}" src="${icon_path}"/>
-    		</div>`;
+    				<img id="${window_id}" class="icon ${icon_focused_class}" src="${icon_path}"/>
+    			</div>`;
     return html;
 }
 
