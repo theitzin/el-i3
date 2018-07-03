@@ -1,6 +1,7 @@
 class BaseModule {
-	constructor(parent) {
+	constructor(parent, core) {
 		this.parent = parent;
+		this.core = core;
 		this.active = false; // modules should not manipulate the DOM when false
 	}
 

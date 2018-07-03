@@ -13,6 +13,7 @@ class SystemInterface {
 	power_action() {}
 	launch_filemanager() {}
 	mail() {}
+	calendar() {}
 }
 
 module.exports = {

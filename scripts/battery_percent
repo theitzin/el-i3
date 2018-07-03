@@ -1,0 +1,2 @@
+#!/bin/bash
+echo $(upower -i /org/freedesktop/UPower/devices/battery_BAT$1 | grep percentage: | awk '{print $2}'  | sed "s/%//")

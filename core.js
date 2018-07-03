@@ -1,15 +1,18 @@
 const $ = require('jquery');
-const { exec } = require('child_process');
 
 const base_window = require('./window');
+const wm_interface = require('./wm_interface');
 const module_list = {
-	'taskbar' : require('./taskbar.js').Taskbar
-	//'status' : require('status.js').Status
+	'taskbar' : require('./taskbar.js').Taskbar,
+	'status' : require('./status.js').Status,
+	'snake' : require('./modules/snake/snake.js').Snake
 };
 
 class Bar extends base_window.BaseWindow {
 	constructor(parent) {
 		super(parent);
+		this.wm_interface = new wm_interface.i3Interface();
+		this.wm_interface.on('update', (data) => this.update_window(data.focus.display.name, true));
 
 		this.modules = {
 			bar : null,
@@ -18,37 +21,45 @@ class Bar extends base_window.BaseWindow {
 		};
 
 		this.load_module('taskbar', {core_module : true});
-		// this.load_module('status', {status_module : true, core_module : true});
+		this.activate('taskbar');
+		this.load_module('status', {status_module : true, core_module : true});
+		this.activate('status');
 		
 		this.set_position(false, false, 100, 0);
 	}
 
 	load_module(module, options={}) {
 		if (this.modules.loaded[module]) {
-			return // already loaded
-		} else {
-			let status_module = options.status_module || false;
-			let core_module = options.core_module || false;
-
-			let module_type = status_module ? 'status' : 'bar';
-
-			if($('#' + module).length == 0) {
-				$('#inactive_modules').append(`<div id="${module}" class="${module_type}"></div>`);
-			}
-
-			this.modules.loaded[module] = {
-				'module_type' : module_type,
-				'core_module' : core_module,
-				'active' : false,
-				'instance' : new module_list[module]('#' + module, this)
-			};
+			console.log('module already loaded.');
+			return
 		}
-		this.activate(module);
+
+		let status_module = options.status_module || false;
+		let core_module = options.core_module || false;
+
+		let module_type = status_module ? 'status' : 'bar';
+
+		if($('#' + module).length == 0) {
+			$('#inactive_modules').append(`<div id="${module}" class="${module_type}"></div>`);
+		}
+
+		this.modules.loaded[module] = {
+			'module_type' : module_type,
+			'core_module' : core_module,
+			'active' : false,
+			'instance' : new module_list[module]('#' + module, this)
+		};
 	}
 
 	unload_module(module) {
 		this.deactivate(module);
-		this.modules.loaded[module].instance.unload().then(() => {delete this.modules.loaded[module];});
+		this.modules.loaded[module].instance.unload().then(() => delete this.modules.loaded[module] );
+		setTimeout(() => {
+			if (this.modules.loaded[module]) {
+				delete this.modules.loaded[module];
+				console.log(`warning: soft unload of module ${module} failed. module killed.`);
+			}
+		}, 5000); // kill if not unloaded after 5 seconds
 		$('#' + module).remove();
 	}
 
@@ -67,6 +78,7 @@ class Bar extends base_window.BaseWindow {
 		this.modules.loaded[module].active = true;
 		this.modules.loaded[module].instance.active = true;
 		this.modules.loaded[module].instance.activate();
+		this.update_window(null, true);
 
 		this.modules[module_type] = module;
 	}

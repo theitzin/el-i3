@@ -16,7 +16,10 @@
   "dependencies" :{
     "i3" : "0.2.1",
     "jquery" : "3.3.1",
-    "node-datetime" : "2.0.6"
+    "node-datetime" : "2.0.6",
+    "system-control" : "0.0.5",
+    "systeminformation" : "3.42.0",
+    "node-exec-promise" : "1.0.2"
   },
   "devDependencies": {
     "electron": "~1.7.8"

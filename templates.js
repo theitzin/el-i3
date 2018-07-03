@@ -51,6 +51,13 @@ const icons = {
 	more : 'dots-horizontal'
 }
 
+function info_base() {
+	let html = `<div id="datetime_wrapper"></div>
+				<br>
+				<div id="icon_wrapper"></div>`;
+	return html;
+}
+
 function info_icon(id, icon_name) {
 	let html = `<div id="${id}" class="info_icon">
 					<i class="mdi mdi-${icon_name}"></i>
@@ -63,9 +70,9 @@ function info_container(id) {
 	return html;	
 }
 
-function info_slider(id) {
+function info_slider(id, max=100) {
 	let html = `<div id="${id}" class="info_slider">
-  					<input type="range" min="1" max="100" class="slider">
+  					<input type="range" min="0" max="${max}" class="slider">
 				</div>`;
 	return html;
 }
@@ -79,6 +86,7 @@ module.exports = {
 	icons : icons,
 	taskbar_icon : taskbar_icon,
 	date_time : date_time,
+	info_base : info_base,
 	info_icon : info_icon,
 	info_container : info_container,
 	info_slider : info_slider,

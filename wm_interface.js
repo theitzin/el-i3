@@ -1,4 +1,5 @@
 const i3 = require('i3').createClient();
+const exec = require('child_process').exec;
 const $ = require('jquery');
 const events = require('events');
 
@@ -10,7 +11,6 @@ class WMInterface extends events.EventEmitter {
 	
 	kill_window() { throw new Error('not implemented in base class'); }
 	move(num) { throw new Error('not implemented in base class'); }
-	// get_tree() { throw new Error('not implemented in base class'); }
 }
 
 class i3Interface extends WMInterface {
@@ -21,7 +21,7 @@ class i3Interface extends WMInterface {
 			focus : {},
 			displays : []
 		};
-		this.window_id = null;
+		this.previous_workspace = -1;
 
 		i3.on('workspace', function(e) {
 			// ['focus']
@@ -44,6 +44,22 @@ class i3Interface extends WMInterface {
 					this._update_tree();
 			}
 		}.bind(this));
+
+		this.on('update', (data) => {
+			if (this.tree.focus.workspace && this.previous_workspace) {
+				if (this.tree.focus.workspace.num != this.previous_workspace) {
+					this.move(this.tree.focus.workspace.num);
+				}
+				this.previous_workspace = this.tree.focus.workspace.num;
+			}
+		});
+
+		setTimeout(() => {
+			// for some reason this line crashes i3
+			// i3.command(`[title="^el-i3$"] move scratchpad`);
+			exec(`i3-msg '[title="^el-i3$"] move scratchpad'`);
+			console.log('moved to scratchpad');
+		}, 1000);
 	}
 
 	kill_window(id) {
@@ -51,13 +67,7 @@ class i3Interface extends WMInterface {
 	}
 
 	move(num) {
-		if (this.window_id) {
-			i3.command(`[id="${this.window_id}"] move container to workspace number ${num}`);
-		}
-	}
-
-	get_tree() {
-		return this.tree;
+		i3.command(`scratchpad show`);
 	}
 
 	_get_display(node, focus) {

@@ -28,14 +28,13 @@ body {
 
 .status {
 	display: inline-block;
-	vertical-align: top;
+	vertical-align: bottom;
 	color: #d0d0d0;
-	margin-left: 10px;
 }
 
 #icon_wrapper {
 	float: right;
-	margin: 0px 10px 0px 10px;
+	margin: 0px 10px 4px 10px;
 }
 
 .info_container, .info_icon, .info_label, .info_slider {
@@ -69,6 +68,10 @@ body {
 	margin-top: -1px;
 	margin-left: 4px;
 	vertical-align: top;
+}
+
+.info_container > .info_icon:last-child, .info_label:last-child {
+	margin-right: 4px;
 }
 
 .mdi {
@@ -175,4 +178,11 @@ img {
 	left: 28px;
 	bottom: -3px;
 	z-index: 10;
+}
+
+#snake {
+	margin: 10px;
+	background-color: #d0d0d0;
+	width: 300px;
+	height: 150px;
 }

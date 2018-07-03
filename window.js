@@ -1,5 +1,5 @@
 const electron = require('electron');
-const { exec } = require('child_process');
+const exec = require('node-exec-promise').exec;
 const $ = require('jquery');
 ;
 class BaseWindow {
@@ -34,17 +34,17 @@ class BaseWindow {
 		this.top_align = top_align;
 		this.horizontal_margin = horizontal_margin;
 		this.vertical_margin = vertical_margin;
-		this.update_window_position()
+		this.update_window()
 	}
 
 	set_screen_map() {
-		exec('xrandr | grep " connected "', function(error, stdout, stderr) {
-			if (error) {
+		exec('xrandr | grep " connected "').then(out => {
+			if (out.error) {
 				console.log('error generating screen offset map');
 				return
 			}
 			this.screen_map = {};
-			for (let line of stdout.split('\n')) {
+			for (let line of out.stdout.split('\n')) {
 				if (line.length == 0)
 					continue;
 				let parts = line.split(' ');
@@ -58,14 +58,16 @@ class BaseWindow {
 					y_offset: parseInt(info[3])
 				}
 			}
-		}.bind(this));
+		});
 	}
 
-	update_window_position(display=null) {
+	update_window(display=null, force_update=false) {
 		let width = Math.round($(this.parent).width());
 		let height = Math.round($(this.parent).height());
 
-		if (this.width == width &&	this.height == height 
+		if (!force_update 
+			&& this.width == width 
+			&&	this.height == height 
 			&& (!display || display == this.display)) {
 			return;
 		}
