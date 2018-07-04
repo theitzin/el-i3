@@ -12,7 +12,11 @@ class Bar extends base_window.BaseWindow {
 	constructor(parent) {
 		super(parent);
 		this.wm_interface = new wm_interface.i3Interface();
-		this.wm_interface.on('update', (data) => this.update_window(data.focus.display.name, true));
+		this.wm_interface.on('update', (data) => {
+			if (data.focus.display) {
+				this.update_window(data.focus.display.name, true);
+			}
+		});
 
 		this.modules = {
 			bar : null,

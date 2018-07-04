@@ -1,6 +1,15 @@
 const datetime = require('node-datetime');
 // provides HTML templates
 
+function taskbar_container(workspace_num, numbered=false) {
+	let number_html = numbered ? '<div class="workspace_wrapper_num"></div>' : '';
+    let html = `<div id="workspace${workspace_num}" class="workspace_wrapper">
+    				${number_html}
+    				<div class="workspace_wrapper_icons"></div>
+    			</div>`;
+    return html;
+}
+
 function taskbar_icon(icon_path, window_id, focused, number_instances) {
 	let wrapper_focused_class = focused ? 'icon_wrapper_focused' : '';
 	let icon_focused_class = focused ? 'icon_focused' : '';
@@ -47,6 +56,9 @@ const icons = {
 		level : ['volume-low', 'volume-medium', 'volume-high'],
 		mute : 'volume-off'
 	},
+	brightness : 'brightness-5',
+	calendar : 'calendar',
+	filemanager : 'folder',
 	mail : 'email',
 	more : 'dots-horizontal'
 }
@@ -72,7 +84,7 @@ function info_container(id) {
 
 function info_slider(id, max=100) {
 	let html = `<div id="${id}" class="info_slider">
-  					<input type="range" min="0" max="${max}" class="slider">
+  					<input type="range" min="0" max="${max}" step="${max / 100}" class="slider">
 				</div>`;
 	return html;
 }
@@ -84,6 +96,7 @@ function info_label(id, text='') {
 
 module.exports = {
 	icons : icons,
+	taskbar_container : taskbar_container,
 	taskbar_icon : taskbar_icon,
 	date_time : date_time,
 	info_base : info_base,

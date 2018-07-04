@@ -9,7 +9,7 @@ class Taskbar extends base_module.BaseModule {
 		super(parent, core);
 
 		this.wm_interface = core.wm_interface;
-		this.wm_interface.on('update', (data) => this.update_apps(data));
+		this.wm_interface.on('update', (data) => this.update(data));
 	}
 
 	get_icon_path(name) {
@@ -21,39 +21,54 @@ class Taskbar extends base_module.BaseModule {
 		}
 	}
 
-	update_apps(data) {
-		let workspace = data.focus.workspace;
-		let display = data.focus.display.name;
+	get_default_icon_path() {
+		return `icons/papirus/xfce_unknown.svg`;
+	}
 
-		if (workspace) {
-			let html = '';
-			for (let win of workspace.windows) {
-				if (!win.id || !win.class) {
-					html += ht.taskbar_icon(
-						this.get_default_icon_path(), -1, false, 1);	
-				} else {
-					let focused = win.id == data.focus.window.id;
-					html += ht.taskbar_icon (
-						this.get_icon_path(win.class.toLowerCase()), win.id, focused, 1);
+	add_workspace(data, workspace, numbered) {
+		let html = '';
+		for (let win of workspace.windows) {
+			if (win.id && win.class) {
+				let focused = Boolean(data.focus.window && (win.id == data.focus.window.id));
+				html += ht.taskbar_icon (
+					this.get_icon_path(win.class.toLowerCase()), win.id, focused, 1);
+			} else {
+				html += ht.taskbar_icon(
+					this.get_default_icon_path(), -1, false, 1);	
+			}
+		}
+
+		$(this.parent).append(ht.taskbar_container(workspace.num, numbered));
+		$(`#workspace${workspace.num} > .workspace_wrapper_num`).html(workspace.num);
+		$(`#workspace${workspace.num} > .workspace_wrapper_icons`).html(html);
+		$(`#workspace${workspace.num} .icon`).click(e => this.wm_interface.focus(e.target.id));
+		$(`#workspace${workspace.num} .icon`).contextmenu(e => this.wm_interface.kill(e.target.id));		
+	}
+
+	update(data) {
+		$(this.parent).html('');
+		let extended = true;
+
+		if (extended) {
+			let workspaces = [];
+			for (let display of data.displays) {
+				for (let workspace of display.workspaces) {
+					if (workspace.windows.length != 0) {
+						workspaces.push(workspace);
+					}
 				}
 			}
-
-			$(this.parent).html(html);
-
-			for (let win of workspace.windows) {
-				$('#' + win.id).click(e => {
-					let id = e.target.id;
-				});
-				$('#' + win.id).contextmenu(e => {
-					this.wm_interface.kill_window(e.target.id);			
-				});
+			workspaces = workspaces.sort((x, y) => x.num > y.num);
+			for (let workspace of workspaces) {
+				this.add_workspace(data, workspace, true);
 			}
-		} else if ($.isEmptyObject(data.focus)) {
-			// hopefully only happens during initialization
-			return
+		} else if (data.focus.workspace) {
+			this.add_workspace(data, data.focus.workspace, false)
 		} else {
-			$(this.parent).html('empty');
+			$(this.parent).html('no data');
 		}
+
+		this.core.update_window();
 	}
 }
 

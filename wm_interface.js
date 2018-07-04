@@ -9,8 +9,10 @@ class WMInterface extends events.EventEmitter {
 		super();
 	}
 	
-	kill_window() { throw new Error('not implemented in base class'); }
+	kill() { throw new Error('not implemented in base class'); }
+	add_ready_check(promise) { throw new Error('not implemented in base class'); }
 	move(num) { throw new Error('not implemented in base class'); }
+	focus(id) {}
 }
 
 class i3Interface extends WMInterface {
@@ -22,26 +24,23 @@ class i3Interface extends WMInterface {
 			displays : []
 		};
 		this.previous_workspace = -1;
+		// list of promises, only show on new workspace when all are ready
+		this.ready_checks = [];
 
 		i3.on('workspace', function(e) {
-			// ['focus']
-			if (['empty', 'init'].includes(e.change)) {
-				if (this._filter_events(e)) 
-					this._update_workspace(e);
+			if (['empty'].includes(e.change)) {
+				this._update_workspace(e);
 			}
-			if (['move'].includes(e.change)) {
-				if (this._filter_events(e)) 
-					this._update_tree();
+			if (['move', 'init'].includes(e.change)) {
+				this._update_tree(e);
 			}
 		}.bind(this));
 		i3.on('window', function(e) {
 			if (['focus'].includes(e.change)) {
-				if (this._filter_events(e)) 
-					this._update_window(e);
+				this._update_window(e);
 			}
 			if (['new', 'close', 'move'].includes(e.change)) {
-				if (this._filter_events(e))
-					this._update_tree();
+				this._update_tree(e);
 			}
 		}.bind(this));
 
@@ -57,17 +56,34 @@ class i3Interface extends WMInterface {
 		setTimeout(() => {
 			// for some reason this line crashes i3
 			// i3.command(`[title="^el-i3$"] move scratchpad`);
-			exec(`i3-msg '[title="^el-i3$"] move scratchpad'`);
+			// exec(`i3-msg '[title="^el-i3$"] move scratchpad'`);
+			exec(`i3-msg '[title="^el-i3$"] sticky toggle'`);
 			console.log('moved to scratchpad');
 		}, 1000);
 	}
 
-	kill_window(id) {
+	kill(id) {
 		i3.command(`[id="${id}"] kill`);
 	}
 
+	add_ready_check(promise) {
+		this.ready_checks.push(promise);
+	}
+
 	move(num) {
-		i3.command(`scratchpad show`);
+		// if (this.ready_checks.length == 0) {
+		// setTimeout(() => i3.command(`scratchpad show`), 100);
+		// i3.command(`scratchpad show`);
+		// } else {
+		// 	exec(`i3-msg '[title="^el-i3$"] move scratchpad'`)
+		// 		.then(() => Promise.all(this.ready_checks)
+		// 		.then(() => i3.command(`scratchpad show`)
+		// 	));
+		// }
+	}
+
+	focus(id) {
+		i3.command(`[id="${id}"] focus`);
 	}
 
 	_get_display(node, focus) {
@@ -142,7 +158,7 @@ class i3Interface extends WMInterface {
 		};
 	}
 
-	_update_tree() {
+	_update_tree(e) {
 		i3.tree((...args) => {
 			// first argument seems to always be null
 			let data = args[1];
@@ -159,19 +175,28 @@ class i3Interface extends WMInterface {
 				tree.displays.push(display_data.data);
 			}
 
-			// workaround. sometimes nothing seems to be focused.
-			// only update focused information if new data is available. 
-			// this might result in things showing as focused even if they are not.
-			// is there a better solution?
-			this.tree.focus = Object.assign(this.tree.focus, tree.focus);
-			this.tree.displays = tree.displays;
+			// no workspace seems to be focused after 'close'
+			// manually set previous workspace
+			if (e && e.change == 'close') {
+				for (let display of tree.displays) {
+					for (let workspace of display.workspaces) {
+						if (workspace.num == this.tree.focus.workspace.num) {
+							tree.focus.workspace = workspace;
+							tree.focus.display = display;
+						}
+					}
+				}
+			}
 
-			this.emit('update', this.tree)
+			this.tree = tree;
+
+			this.emit('update', this.tree);
 		});
 	}
 
 	_update_workspace(e) {
-		if ($.isEmptyObject(this.tree.focus) || this.tree.displays.length == 0) {
+		if (this.tree.displays.length == 0) {
+			this._update_tree();
 			return
 		}
 
@@ -186,17 +211,19 @@ class i3Interface extends WMInterface {
 						workspace = this._get_workspace(e.current, display, this.tree.focus).data;
 					}
 					display.workspaces[i] = workspace;
+					this.tree.focus.window = null;
 					this.tree.focus.workspace = workspace;
 					this.tree.focus.display = display;
 				}
 			}
 		}
 
-		this.emit('update', this.tree)
+		this.emit('update', this.tree);
 	}
 
 	_update_window(e) {
-		if ($.isEmptyObject(this.tree.focus) || this.tree.displays.length == 0) {
+		if (this.tree.displays.length == 0) {
+			this._update_tree();
 			return
 		}
 
@@ -205,10 +232,6 @@ class i3Interface extends WMInterface {
 				for (let i = 0; i < workspace.windows.length; i++) {
 					let win = workspace.windows[i];
 					if (win.id == e.container.window) {
-						if (e.change != 'focus') {
-							win = this._get_window(e.container, workspace, this.tree.focus).data;
-							workspace.windows[i] = win;
-						}
 						this.tree.focus.window = win;
 						this.tree.focus.workspace = workspace;
 						this.tree.focus.display = display;
@@ -217,25 +240,7 @@ class i3Interface extends WMInterface {
 			}
 		}
 
-		this.emit('update', this.tree)
-	}
-
-	_filter_events(e) {
-		return true;
-
-		// let blacklist = ['el-i3'];
-		// let properties = ['e.container.name', 'e.container.nodes[0].name'];
-
-		// for (let p of properties) {
-		// 	try {
-		// 		let eval_p = eval(p);
-		// 		if (blacklist.includes(eval_p)) {
-		// 			return false;
-		// 		}
-		// 	} catch (err) {}
-		// }
-		
-		// return true;
+		this.emit('update', this.tree);
 	}
 }
 

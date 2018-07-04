@@ -72,8 +72,11 @@ class Status extends base_module.BaseModule {
 
 		$(this.parent).html(ht.info_base());
 
-		this.init_more();
+		// this.init_more();
 		this.init_mail();
+		this.init_filemanager();
+		this.init_calendar();
+		this.init_brightness();
 		this.init_volume();
 		this.init_wifi();
 		this.init_battery();
@@ -116,6 +119,69 @@ class Status extends base_module.BaseModule {
 					}
 				});
 			});
+	}
+
+	init_filemanager() {
+		let data = {
+			id : 'info_icon_filemanager',
+			icon : ht.icons.filemanager
+		}
+
+		this.add_info_icon(
+			(parent) => {
+				$(parent).append(ht.info_icon(data.id, data.icon));
+				$('#' + data.id).click(() => {
+					exec('scripts/nautilus_open');
+				});
+			}, '#icon_wrapper', false);
+	}
+
+	init_calendar() {
+		let data = {
+			id : 'info_icon_calendar',
+			icon : ht.icons.calendar
+		}
+
+		this.add_info_icon(
+			(parent) => {
+				$(parent).append(ht.info_icon(data.id, data.icon));
+				$('#' + data.id).click(() => {
+					exec('scripts/calendar_open');
+				});
+			}, '#icon_wrapper', false);
+	}
+
+	init_brightness() {
+		let data = {
+			id : 'info_icon_brightness',
+			icon : ht.icons.brightness,
+			con_id : 'brightness_container'
+		}
+
+		let set_brightness = (b) => sc.display.setBrightness(Math.max(0.01, b)); // avoid black screen
+
+		let update_state = () => sc.display.getBrightness().then(b => {
+			$('#' + data.con_id + '_slider > .slider')[0].value = b;
+			$('#' + data.con_id + '_label').html(Math.ceil(100 * b) + '%');
+		});
+
+		this.add_info_icon(
+			(parent) => {
+				$(parent).append(ht.info_icon(data.id, data.icon));
+
+				$(parent).append(ht.info_container(data.con_id));
+				$('#' + data.con_id).append([
+					ht.info_slider(data.con_id + '_slider', 1),
+					ht.info_label(data.con_id + '_label', ' 50%')
+				].join('\n'));
+
+				$('#' + data.con_id + '_slider > .slider').change(e => {
+					set_brightness(parseFloat(e.target.value)).catch(e => console.log(e));
+					update_state();
+				});
+
+				this.bind_elements(['#' + data.id, '#' + data.con_id], [{from : 0, to : 1}]);
+			}, '#icon_wrapper', false, 60, (parent) => update_state());
 	}
 
 	init_volume() {
@@ -169,7 +235,7 @@ class Status extends base_module.BaseModule {
 				].join('\n'));
 
 				$('#' + data.con_id + '_slider > .slider').change(e => {
-					set_volume(e.target.value);
+					set_volume(parseInt(e.target.value));
 					update_state();
 				});
 
@@ -180,7 +246,7 @@ class Status extends base_module.BaseModule {
 				].join('\n'));
 
 				$('#' + data.sink_con_id + '_slider > .slider').change(e => {
-					set_sink_volume(e.target.value);
+					set_sink_volume(parseInt(e.target.value));
 					update_state();
 				});
 
@@ -193,7 +259,6 @@ class Status extends base_module.BaseModule {
 						toggle_mute().then(() => update_state());
 					}
 				});
-
 			}, '#icon_wrapper', false, 60, (parent) => update_state());
 	}
 

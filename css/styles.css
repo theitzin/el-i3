@@ -37,6 +37,66 @@ body {
 	margin: 0px 10px 4px 10px;
 }
 
+.workspace_wrapper, .workspace_wrapper_num, .workspace_wrapper_icons {
+	display: inline-block;
+}
+
+.workspace_wrapper_num {
+	color: #d0d0d0;
+	font-family: Roboto, sans-serif;
+	vertical-align: bottom;
+	margin: 0px 0px 34px 20px;
+}
+
+.workspace_wrapper:first-child > .workspace_wrapper_num {
+	margin-left: 10px;
+}
+
+img {
+	display: inline-block;
+    width: 48px;
+    height: 48px;
+}
+
+.icon {
+	display: inline-block;
+	position: relative;
+}
+
+.icon_focused {
+}
+
+.icon_wrapper {
+	cursor: pointer;
+	vertical-align: top;
+	line-height: 0;
+	padding: 8px 8px 8px 0px;
+	display: inline-block;
+	position: relative;
+}
+
+.icon_wrapper:hover {
+	padding-top: 6px;
+	padding-bottom: 10px;
+}
+
+.icon_wrapper_focused {
+
+}
+
+.icon_wrapper_focused:before {
+	content: "";
+	width: 8px; 
+	height: 8px; 
+	border-radius: 4px;
+	display: inline-block;
+	background-color: #06996d;
+	position: absolute;
+	left: 20px;
+	bottom: -3px;
+	z-index: 10;
+}
+
 .info_container, .info_icon, .info_label, .info_slider {
 	display: inline-block;
 	float: left;
@@ -86,12 +146,24 @@ body {
 .slider {
     -webkit-appearance: none;
     width: 60px;
-    height: 2px;
-    border-radius: 1px;
-    background-color: #3d3937;
+    height: 18px;
+    background-color: transparent;
     outline: none;
+    vertical-align: top;
+    margin: 0px;
+}
+
+.info_slider:before {
+    content: '';
+    border-top: 2px solid #3d3937;
+    left: 0px;
+    width: 54px;
+    display: inline-block;
     vertical-align: middle;
-    margin-top: -1px;
+    z-index: -1;
+    margin-left: 4px;
+    margin-right: -60px; /*terrible hack*/
+    margin-top: -2px;
 }
 
 .slider::-webkit-slider-thumb {
@@ -134,50 +206,6 @@ body {
 #datetime_time_s {
 	margin-left: -3px;
 	font-size: 15px;
-}
-
-img {
-	display: inline-block;
-    width: 48px;
-    height: 48px;
-}
-
-.icon {
-	display: inline-block;
-	position: relative;
-}
-
-.icon_focused {
-}
-
-.icon_wrapper {
-	cursor: pointer;
-	vertical-align: top;
-	line-height: 0;
-	padding: 8px;
-	display: inline-block;
-	position: relative;
-}
-
-.icon_wrapper:hover {
-	padding: 6px 8px 10px 8px;
-}
-
-.icon_wrapper_focused {
-
-}
-
-.icon_wrapper_focused:before {
-	content: "";
-	width: 8px; 
-	height: 8px; 
-	border-radius: 4px;
-	display: inline-block;
-	background-color: #06996d;
-	position: absolute;
-	left: 28px;
-	bottom: -3px;
-	z-index: 10;
 }
 
 #snake {

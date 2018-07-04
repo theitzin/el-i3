@@ -4,7 +4,9 @@ const $ = require('jquery');
 ;
 class BaseWindow {
 	constructor(parent) {
-		this.window_instance = require('electron').remote.getCurrentWindow();
+		this.window_instance = electron.remote.getCurrentWindow();
+		this.window_instance.setMovable(false); // not implemented on linux
+		this.window_instance.setResizable(false);
 
 		this.parent = parent;
 		this.content = '';
@@ -15,6 +17,7 @@ class BaseWindow {
 		this.top_align = true; // false means bottom align
 		this.horizontal_margin = 0;
 		this.vertical_margin = 0;
+		this.zoom_factor = 1;
 
 		// some initialization because screen_map update is async
 		this.screen_map = {
@@ -72,8 +75,9 @@ class BaseWindow {
 			return;
 		}
 
-		this.width = width;
-		this.height = height;
+		this.zoom_factor = electron.webFrame.getZoomFactor();
+		this.width = Math.floor(width * this.zoom_factor);
+		this.height = Math.floor(height * this.zoom_factor);
 
 		if (display) {
 			if (!(display in this.screen_map)) {

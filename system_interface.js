@@ -3,17 +3,18 @@ class SystemInterface {
 		this.cpu_history;
 	}
 
-	volume() {}
-	brightness() {}
+	// volume() {}
+	// brightness() {}
 	network_status() {}
 	cpu_load() {}
 	memory_use() {}
 	disk_space() {}
 	display_layout() {}
-	power_action() {}
-	launch_filemanager() {}
-	mail() {}
-	calendar() {}
+	// power_action() {}
+	// launch_filemanager() {}
+	// mail() {}
+	// calendar() {}
+	shutter() {}
 }
 
 module.exports = {

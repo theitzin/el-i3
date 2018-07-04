@@ -26,7 +26,7 @@ function create_window () {
         slashes: true
     }))
 
-    bar_window.webContents.openDevTools()
+    // bar_window.webContents.openDevTools({detached: true})
 
     bar_window.on('closed', function () {
         bar_window = null
