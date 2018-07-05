@@ -2,9 +2,11 @@ const fs = require('fs');
 const $ = require('jquery');
 const exec = require('node-exec-promise').exec;
 
-const base_module = require('./base_module');
 const sc = require('system-control')();
+const os = require('os');
 // const si = require('systeminformation');
+
+const base_module = require('./base_module');
 const ht = require('./templates');
 
 class Status extends base_module.BaseModule {
@@ -98,6 +100,7 @@ class Status extends base_module.BaseModule {
 		this.init_calendar();
 		this.init_filemanager();
 		this.init_display();
+		this.init_load();
 		this.init_more();
 	}
 
@@ -347,36 +350,6 @@ class Status extends base_module.BaseModule {
 			});
 	}
 
-	init_more() {
-		let data = {
-			id : 'info_icon_more',
-			icon : ht.icons.more,
-			optional_ids : [
-				'#info_icon_brightness',
-				'#info_icon_calendar',
-				'#info_icon_filemanager'
-			].join()
-		}
-		let timer = null;
-
-		this.add_info_icon(
-			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon))
-				$(data.optional_ids).addClass('info_optional');
-				$('#' + data.id).click(() => {
-					$(`#${data.id}, ${data.optional_ids}`).toggleClass('info_optional');
-				});
-				$(data.optional_ids).hover(() => { 
-					clearTimeout(timer);
-					$(data.optional_ids).stop(true, true); 
-				}, () => {
-					$(data.optional_ids).queue(() => timer = setTimeout(() => {
-						$(`#${data.id}, ${data.optional_ids}`).toggleClass('info_optional');
-					}, 1000));
-				});
-			}, '#icon_wrapper', false);
-	}
-
 	init_brightness() {
 		let data = {
 			id : 'info_icon_brightness',
@@ -435,13 +408,125 @@ class Status extends base_module.BaseModule {
 			(parent) => {
 				$(parent).append(ht.info_icon(data.id, data.icon));
 				$('#' + data.id).click(() => {
-					exec('scripts/nautilus_open');
+					exec('scripts/filemanager_open');
 				});
 			}, '#icon_wrapper', false);
 	}
 
 	init_display() {
 
+	}
+
+	init_load() {
+				let data = {
+			id : 'info_icon_load',
+			icon : ht.icons.battery.discharging[6],
+			con_id : 'load_container',
+			id_cpu : 'info_icon_cpu',
+			icon_cpu : ht.icons.battery.discharging[6],
+			id_memory : 'info_icon_memory',
+			icon_memory : ht.icons.battery.discharging[6],
+			id_disk : 'info_icon_disk',
+			icon_disk : ht.icons.battery.discharging[6]
+		}
+
+		let cpu_load = () => {
+			let load = [];
+			for (let cpu of os.cpus()) {
+				let total = 0;
+				for (let k in cpu.times) {
+					total += cpu.times[k];
+				}
+				load.push(1 - cpu.times.idle / total);
+			}
+			return load;
+		};
+
+		let memory_human = (bytes) => {
+			if (bytes < 1024) return bytes + 'B';
+			bytes /= 1024;
+			if (bytes < 1024) return Math.floor(bytes) + 'K';
+			bytes /= 1024;
+			if (bytes < 1024) return Math.floor(bytes) + 'M';
+			bytes /= 1024;
+			return Math.floor(bytes) + 'G';
+		};
+
+		let update_state = () => {
+			let state = {
+				cpu_load : cpu_load(),
+				memory_load : os.totalmem() - os.freemem(),
+				disk_space : 10
+			}
+
+			console.log(state);
+
+			state.high_cpu = state.cpu_load.map((v) => v > 0.8).some((v) => v);
+			state.high_memory = state.memory_load / Math.pow(1024, 3) > 10;
+			state.low_disk = state.disk_space < 10;
+
+			let cpu_formatted = state.cpu_load.map((v) => Math.round(v * 100) + '%').join(' | ');
+			$('#' + data.con_id + '_cpu').html(cpu_formatted);
+			$('#' + data.con_id + '_memory').html(memory_human(state.memory_load));
+			$('#' + data.con_id + '_disk').html(state.disk_space);
+
+			data.high_cpu ? $('#' + data.id_cpu).show() : $('#' + data.id_cpu).hide();
+			data.high_memory ? $('#' + data.id_memory).show() : $('#' + data.id_memory).hide();
+			data.low_disk ? $('#' + data.id_disk).show() : $('#' + data.id_disk).hide();
+		};
+
+		this.add_info_icon(
+			(parent) => {
+				$(parent).append(ht.info_icon(data.id_cpu, data.icon_cpu));
+				$(parent).append(ht.info_icon(data.id_memory, data.icon_memory));
+				$(parent).append(ht.info_icon(data.id_disk, data.icon_disk));
+				$('#' + data.id_cpu).hide();
+				$('#' + data.id_memory).hide();
+				$('#' + data.id_disk).hide();
+
+				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_container(data.con_id));
+				$('#' + data.con_id).append([
+					ht.info_label(data.con_id + '_cpu', '?'),
+					ht.info_icon(data.icon_cpu, data.icon_cpu),
+					ht.info_label(data.con_id + '_memory', '?'),
+					ht.info_icon(data.icon_memory, data.icon_memory),
+					ht.info_label(data.con_id + '_disk', '?'),
+					ht.info_icon(data.icon_disk, data.icon_disk),
+				].join('\n'));
+
+				this.bind_elements(['#' + data.id, '#' + data.con_id], [{from : 0, to : 1}]);
+			}, '#icon_wrapper', false, 10, (parent) => update_state());
+	}
+
+	init_more() {
+		let data = {
+			id : 'info_icon_more',
+			icon : ht.icons.more,
+			optional_ids : [
+				'#info_icon_brightness',
+				'#info_icon_calendar',
+				'#info_icon_filemanager'
+			].join()
+		}
+		let timer = null;
+
+		this.add_info_icon(
+			(parent) => {
+				$(parent).append(ht.info_icon(data.id, data.icon))
+				$(data.optional_ids).addClass('info_optional');
+				$('#' + data.id).click(() => {
+					$(`#${data.id}, ${data.optional_ids}`).toggleClass('info_optional');
+				});
+				$(data.optional_ids).hover(() => { 
+					clearTimeout(timer);
+					$(data.optional_ids).stop(true, true); 
+				}, () => {
+					$(data.optional_ids).queue(() => timer = setTimeout(() => {
+						$(`#${data.id}, ${data.optional_ids}`).toggleClass('info_optional');
+					}, 1000));
+				});
+			}, '#icon_wrapper', false);
 	}
 }
 

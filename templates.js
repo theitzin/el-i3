@@ -59,6 +59,7 @@ const icons = {
 	brightness : 'brightness-5',
 	calendar : 'calendar',
 	filemanager : 'folder',
+	load : 'memory',
 	mail : 'email',
 	more : 'chevron-left'
 }
