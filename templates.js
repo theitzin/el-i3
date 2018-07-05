@@ -60,7 +60,7 @@ const icons = {
 	calendar : 'calendar',
 	filemanager : 'folder',
 	mail : 'email',
-	more : 'dots-horizontal'
+	more : 'chevron-left'
 }
 
 function info_base() {
@@ -70,7 +70,7 @@ function info_base() {
 	return html;
 }
 
-function info_icon(id, icon_name) {
+function info_icon(id, icon_name, optional=false) {
 	let html = `<div id="${id}" class="info_icon">
 					<i class="mdi mdi-${icon_name}"></i>
 				</div>`;
@@ -89,8 +89,9 @@ function info_slider(id, max=100) {
 	return html;
 }
 
-function info_label(id, text='') {
-	let html = `<div id="${id}" class="info_label">${text}</div>`;
+function info_label(id, text, width=null) {
+	let style = width ? `style="width:${width}px"` : '';
+	let html = `<div id="${id}" class="info_label" ${style}>${text}</div>`;
 	return html;
 }
 

@@ -32,11 +32,6 @@ body {
 	color: #d0d0d0;
 }
 
-#icon_wrapper {
-	float: right;
-	margin: 0px 10px 4px 10px;
-}
-
 .workspace_wrapper, .workspace_wrapper_num, .workspace_wrapper_icons {
 	display: inline-block;
 }
@@ -50,6 +45,12 @@ body {
 
 .workspace_wrapper:first-child > .workspace_wrapper_num {
 	margin-left: 10px;
+}
+
+#icon_wrapper {
+	float: right;
+	margin: 0px 10px 4px 10px;
+	width: 230px;
 }
 
 img {
@@ -99,12 +100,20 @@ img {
 
 .info_container, .info_icon, .info_label, .info_slider {
 	display: inline-block;
-	float: left;
+	float: right;
 }
 
 .info_icon {
 	line-height: initial;
 	margin-left: 4px;
+}
+
+.info_hidden {
+	display: none;
+}
+
+.info_optional {
+	display: none;
 }
 
 .info_container {
@@ -116,10 +125,10 @@ img {
 	padding: 0px 4px 0px 4px;
 }
 
-.info_container > .info_container {
+/*.info_container > .info_container {
 	padding: 0px;
 	margin-left: 0px;
-}
+}*/
 
 .info_label {
 	font-family: Roboto, sans-serif;
@@ -128,9 +137,10 @@ img {
 	margin-top: -1px;
 	margin-left: 4px;
 	vertical-align: top;
+	text-align: right;
 }
 
-.info_container > .info_icon:last-child, .info_label:last-child {
+.info_container > div:first-child {
 	margin-right: 4px;
 }
 
@@ -145,7 +155,7 @@ img {
 
 .slider {
     -webkit-appearance: none;
-    width: 60px;
+    width: 80px;
     height: 18px;
     background-color: transparent;
     outline: none;
@@ -157,12 +167,12 @@ img {
     content: '';
     border-top: 2px solid #3d3937;
     left: 0px;
-    width: 54px;
+    width: 74px;
     display: inline-block;
     vertical-align: middle;
     z-index: -1;
     margin-left: 4px;
-    margin-right: -60px; /*terrible hack*/
+    margin-right: -80px; /*terrible hack*/
     margin-top: -2px;
 }
 
