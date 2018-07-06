@@ -2,7 +2,7 @@ const datetime = require('node-datetime');
 // provides HTML templates
 
 function taskbar_container(workspace_num, numbered=false) {
-	let number_html = numbered ? '<div class="workspace_wrapper_num"></div>' : '';
+	let number_html = numbered ? `<div class="workspace_wrapper_num">${workspace_num}</div>` : '';
     let html = `<div id="workspace${workspace_num}" class="workspace_wrapper">
     				${number_html}
     				<div class="workspace_wrapper_icons"></div>

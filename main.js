@@ -24,17 +24,17 @@ function create_window () {
         pathname: path.join(__dirname, 'core.html'),
         protocol: 'file:',
         slashes: true
-    }))
+    }));
 
-    // bar_window.webContents.openDevTools({detached: true})
+    bar_window.webContents.openDevTools({mode: 'detach'});
 
     bar_window.on('closed', function () {
         bar_window = null
-    })
+    });
 }
 
-app.on('ready', create_window)
+app.on('ready', create_window);
 
 app.on('window-all-closed', function () {
     app.quit()
-})
+});

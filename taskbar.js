@@ -9,7 +9,7 @@ class Taskbar extends base_module.BaseModule {
 		super(parent, core);
 
 		this.wm_interface = core.wm_interface;
-		this.wm_interface.on('update', (data) => this.update(data));
+		this.wm_interface.on('update', (data) => this.update(data[0], data[1]));
 	}
 
 	get_icon_path(name) {
@@ -25,11 +25,16 @@ class Taskbar extends base_module.BaseModule {
 		return `icons/papirus/xfce_unknown.svg`;
 	}
 
-	add_workspace(data, workspace, numbered) {
+	add_workspace(focus, workspace, numbered) {
 		let html = '';
-		for (let win of workspace.windows) {
+		let wd_id = 'workspace' + workspace.num;
+
+		for (let win of workspace.nodes) {
+			if (win.name == 'el-i3') {
+				continue
+			}
 			if (win.id && win.class) {
-				let focused = Boolean(data.focus.window && (win.id == data.focus.window.id));
+				let focused = Boolean(focus.window && (win.id == focus.window.id));
 				html += ht.taskbar_icon (
 					this.get_icon_path(win.class.toLowerCase()), win.id, focused, 1);
 			} else {
@@ -39,31 +44,30 @@ class Taskbar extends base_module.BaseModule {
 		}
 
 		$(this.parent).append(ht.taskbar_container(workspace.num, numbered));
-		$(`#workspace${workspace.num} > .workspace_wrapper_num`).html(workspace.num);
-		$(`#workspace${workspace.num} > .workspace_wrapper_icons`).html(html);
-		$(`#workspace${workspace.num} .icon`).click(e => this.wm_interface.focus(e.target.id));
-		$(`#workspace${workspace.num} .icon`).contextmenu(e => this.wm_interface.kill(e.target.id));		
+		$(`#${wd_id} > .workspace_wrapper_icons`).html(html);
+		$(`#${wd_id} .icon`).click(e => this.wm_interface.focus_window(e.target.id));
+		$(`#${wd_id} .icon`).contextmenu(e => this.wm_interface.kill_window(e.target.id));		
 	}
 
-	update(data) {
+	update(tree, focus) {
 		$(this.parent).html('');
 		let extended = true;
 
 		if (extended) {
 			let workspaces = [];
-			for (let display of data.displays) {
-				for (let workspace of display.workspaces) {
-					if (workspace.windows.length != 0) {
+			for (let output of tree.nodes) {
+				for (let workspace of output.nodes) {
+					if (workspace.nodes.length != 0) {
 						workspaces.push(workspace);
 					}
 				}
 			}
 			workspaces = workspaces.sort((x, y) => x.num > y.num);
 			for (let workspace of workspaces) {
-				this.add_workspace(data, workspace, true);
+				this.add_workspace(focus, workspace, true);
 			}
-		} else if (data.focus.workspace) {
-			this.add_workspace(data, data.focus.workspace, false)
+		} else if (focus.workspace) {
+			this.add_workspace(focus, focus.workspace, false)
 		} else {
 			$(this.parent).html('no data');
 		}

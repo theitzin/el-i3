@@ -41,7 +41,7 @@ class BaseWindow {
 	}
 
 	set_screen_map() {
-		exec('xrandr | grep " connected "').then(out => {
+		exec('xrandr | grep " connected "').then((out) => {
 			if (out.error) {
 				console.log('error generating screen offset map');
 				return

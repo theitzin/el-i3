@@ -335,13 +335,13 @@ class Status extends base_module.BaseModule {
 		this.add_info_icon(
 			(parent) => {
 				$(parent).append(ht.info_icon(data.id, ht.icons.mail));
-				$('#' + data.id).hide();
+				$('#' + data.id).addClass('info_alert');
 				$('#' + data.id).click(() => {
 					exec('scripts/gmail_open');
 				});
 			}, '#icon_wrapper', false, 60, 
 			(parent) => {
-				exec('scripts/gmail').then(out  => {
+				exec('scripts/gmail').then((out) => {
 					if (out.stdout.trim() == '0') {
 						$('#' + data.id).addClass('info_alert');
 					} else {

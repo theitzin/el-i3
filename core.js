@@ -13,8 +13,8 @@ class Bar extends base_window.BaseWindow {
 		super(parent);
 		this.wm_interface = new wm_interface.i3Interface();
 		this.wm_interface.on('update', (data) => {
-			if (data.focus.display) {
-				this.update_window(data.focus.display.name, true);
+			if (data[1].output) {
+				this.update_window(data[1].output.name, true);
 			}
 		});
 

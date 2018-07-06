@@ -43,8 +43,8 @@ body {
 	margin: 0px 0px 34px 20px;
 }
 
-.workspace_wrapper:first-child > .workspace_wrapper_num {
-	margin-left: 10px;
+.workspace_wrapper > div:first-child {
+	margin-left: 8px;
 }
 
 #icon_wrapper {

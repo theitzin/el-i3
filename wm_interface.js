@@ -9,65 +9,61 @@ class WMInterface extends events.EventEmitter {
 		super();
 	}
 	
-	kill() { throw new Error('not implemented in base class'); }
-	add_ready_check(promise) { throw new Error('not implemented in base class'); }
 	move(num) { throw new Error('not implemented in base class'); }
-	focus(id) {}
+	kill_window() { throw new Error('not implemented in base class'); }
+	focus_window(id) {}
 }
 
 class i3Interface extends WMInterface {
 	constructor() {
 		super();
 
-		this.tree = {
-			focus : {},
-			displays : []
-		};
+		this.tree = {};
+		this.focus = {};
 		this.previous_workspace = -1;
-		// list of promises, only show on new workspace when all are ready
-		this.ready_checks = [];
+		this.await_focus_change = false;
 
-		i3.on('workspace', function(e) {
-			if (['empty'].includes(e.change)) {
-				this._update_workspace(e);
+		i3.on('workspace', (e) => {
+			if (e.change == 'focus') {
+				this.await_focus_change = true;
+				setTimeout(() => this.await_focus_change = false, 500);
 			}
-			if (['move', 'init'].includes(e.change)) {
+			if (['empty', 'move', 'init'].includes(e.change)) {
+				console.log('ws ' + e.change);
 				this._update_tree(e);
 			}
-		}.bind(this));
-		i3.on('window', function(e) {
-			if (['focus'].includes(e.change)) {
-				this._update_window(e);
-			}
-			if (['new', 'close', 'move'].includes(e.change)) {
+		});
+		i3.on('window', (e) => {
+			if (['focus', 'new', 'close', 'move'].includes(e.change)) {
+				console.log('win ' + e.change);
+				if (e.change == 'focus') {
+					let con = this._dfs(e.container)[0];
+					if (con.name == 'el-i3' && this.await_focus_change) {
+						this.await_focus_change = false;
+						setTimeout(() => i3.command('focus mode_toggle'), 100);
+						// exec(`i3-msg 'focus mode_toggle'`);
+						return
+					}
+				}
 				this._update_tree(e);
 			}
-		}.bind(this));
+		});
 
 		this.on('update', (data) => {
-			if (this.tree.focus.workspace && this.previous_workspace) {
-				if (this.tree.focus.workspace.num != this.previous_workspace) {
-					this.move(this.tree.focus.workspace.num);
+			if (data[1].workspace && this.previous_workspace) {
+				if (data[1].workspace.num != this.previous_workspace) {
+					this.move(data[1].workspace.num);
 				}
-				this.previous_workspace = this.tree.focus.workspace.num;
+				this.previous_workspace = data[1].workspace.num;
 			}
 		});
 
 		setTimeout(() => {
 			// for some reason this line crashes i3
 			// i3.command(`[title="^el-i3$"] move scratchpad`);
-			// exec(`i3-msg '[title="^el-i3$"] move scratchpad'`);
 			exec(`i3-msg '[title="^el-i3$"] sticky toggle'`);
 			console.log('moved to scratchpad');
 		}, 1000);
-	}
-
-	kill(id) {
-		i3.command(`[id="${id}"] kill`);
-	}
-
-	add_ready_check(promise) {
-		this.ready_checks.push(promise);
 	}
 
 	move(num) {
@@ -82,177 +78,47 @@ class i3Interface extends WMInterface {
 		// }
 	}
 
-	focus(id) {
+	kill_window(id) {
+		i3.command(`[id="${id}"] kill`);
+	}
+
+	focus_window(id) {
 		i3.command(`[id="${id}"] focus`);
-	}
-
-	_get_display(node, focus) {
-		let data = {};
-		let focused = node.nodes[1].focused;
-
-		data.name = node.name;
-		data.workspaces = [];
-		for (let workspace of node.nodes[1].nodes) {
-			let workspace_data = this._get_workspace(workspace, data, focus);
-			data.workspaces.push(workspace_data.data);
-
-			if (workspace_data.focused) {
-				focused = true;
-			}
-		}
-
-		if (focused) {
-			focus.display = data;
-		}
-		
-		return {
-			data : data,
-			focused : focused
-		};
-	}
-
-	_get_workspace(node, parent, focus) {
-		let data = {};
-		let focused = node.focused
-
-		data.num = node.num;
-		data.windows = [];
-		for (let win of node.nodes) {
-			let window_data = this._get_window(win, data, focus);
-			data.windows.push(window_data.data);
-
-			if (window_data.focused) {
-				focused = true;
-			}
-		}
-		
-		if (focused) {
-			focus.workspace = data;
-		}
-
-		return {
-			data : data,
-			focused : focused
-		};
-	}
-
-	_get_window(node, parent, focus) {
-		let data = {};
-		let focused = node.focused;
-
-		data.id = node.window;
-		data.title = node.name;
-		if (!data.id) {
-			data.class = null;
-		} else {
-			data.class = node.window_properties.class;
-		}
-		
-		if (focused) {
-			focus.window = data;
-		}
-
-		return {
-			data : data,
-			focused : focused
-		};
 	}
 
 	_update_tree(e) {
 		i3.tree((...args) => {
 			// first argument seems to always be null
-			let data = args[1];
-			console.log(data);
-			console.log(this._dfs(data, this._is_leaf, this._get_children, this._build_node));
-
-			let tree = {};
-			tree.focus = {};
-			tree.displays = [];
-			for (let display of data.nodes) {
-				if (display.name == '__i3') {
-					continue
-				}
-
-				let display_data = this._get_display(display, tree.focus);
-				tree.displays.push(display_data.data);
-			}
-
-			// no workspace seems to be focused after 'close'
-			// manually set previous workspace
-			if (e && e.change == 'close') {
-				for (let display of tree.displays) {
-					for (let workspace of display.workspaces) {
-						if (workspace.num == this.tree.focus.workspace.num) {
-							tree.focus.workspace = workspace;
-							tree.focus.display = display;
+			this.tree = this._dfs(args[1], this._is_leaf, this._get_children, this._build_node)[0];
+			this.focus = {};
+			for (let output of this.tree.nodes) {
+				if (output.focused) {
+					this.focus.output = output;
+					for (let workspace of output.nodes) {
+						if (workspace.focused) {
+							this.focus.workspace = workspace;
+							for (let win of workspace.nodes) {
+								if (win.focused) {
+									this.focus.window = win;
+								}
+							}
 						}
 					}
 				}
 			}
-
-			this.tree = tree;
-			this.emit('update', this.tree);
+			this.emit('update', [this.tree, this.focus]);
 		});
 	}
 
-	_update_workspace(e) {
-		if (this.tree.displays.length == 0) {
-			this._update_tree();
-			return
-		}
-
-		for (let display of this.tree.displays) {
-			for (let i = 0; i < display.workspaces.length; i++) {
-				let workspace = display.workspaces[i];
-				if (e.old && workspace.num == e.old.num) {
-					display.workspaces[i] = this._get_workspace(e.old, display, this.tree.focus).data;
-				} 
-				if (workspace.num == e.current.num) {
-					if (e.change != 'focus') {
-						workspace = this._get_workspace(e.current, display, this.tree.focus).data;
-					}
-					display.workspaces[i] = workspace;
-					this.tree.focus.window = null;
-					this.tree.focus.workspace = workspace;
-					this.tree.focus.display = display;
-				}
-			}
-		}
-
-		this.emit('update', this.tree);
-	}
-
-	_update_window(e) {
-		if (this.tree.displays.length == 0) {
-			this._update_tree();
-			return
-		}
-
-		for (let display of this.tree.displays) {
-			for (let workspace of display.workspaces) {
-				for (let i = 0; i < workspace.windows.length; i++) {
-					let win = workspace.windows[i];
-					if (win.id == e.container.window) {
-						this.tree.focus.window = win;
-						this.tree.focus.workspace = workspace;
-						this.tree.focus.display = display;
-					}
-				}
-			}
-		}
-
-		this.emit('update', this.tree);
-	}
-
-	_dfs(node, is_leaf, get_children, build_node) {
-		if (is_leaf(node)) {
-			return build_node(node, null);
+	_dfs(node) {
+		if (this._is_leaf(node)) {
+			return this._build_node(node, null);
 		} else {
 			let children = [];
-			for (let child of get_children(node)) {
-				children.push(this._dfs(child, is_leaf, get_children, build_node));
+			for (let child of this._get_children(node)) {
+				children = children.concat(this._dfs(child));
 			}
-			return build_node(node, children);
+			return this._build_node(node, children);
 		}
 	}
 
@@ -269,11 +135,11 @@ class i3Interface extends WMInterface {
 	}
 
 	_get_children(node) {
-		if (['root', 'con', 'floating_con'].includes(node.type)) {
+		if (['con', 'floating_con'].includes(node.type)) {
 			return node.nodes;
-		} else if (node.type == 'output' && node.name == '__i3') {
-			return node.nodes;
-		} else if (node.type == 'output' && node.name != '__i3') {
+		} else if (node.type == 'root') {
+			return node.nodes.slice(1); // remove scratchpad
+		} else if (node.type == 'output') {
 			return node.nodes[1].nodes;
 		} else if (node.type == 'workspace') {
 			return node.nodes.concat(node.floating_nodes);
@@ -283,24 +149,39 @@ class i3Interface extends WMInterface {
 	}
 
 	_build_node(source_node, children) {
+		// remove this tree layer
+		if (children && ['con', 'floating_con'].includes(source_node.type)) {
+			return children;
+		}
+
 		let node = {
 			type : source_node.type
 		};
+
+		// add children
 		if (!children) {
 			// leaf node
 		} else if (['root', 'output', 'workspace'].includes(source_node.type)) {
 			node.nodes = children;
+		} 
+
+		// add properties
+		if (source_node.type == 'output') {
+			node.name = source_node.name;
+		} else if (source_node.type == 'workspace') {
+			node.num = source_node.num;
 		} else if (['con', 'floating_con'].includes(source_node.type)) {
-			node.nodes = [];
-			for (let child of children) {
-				if (!child.nodes) { // leaf node
-					node.nodes.push(child);
-				} else {
-					node.nodes.concat(child.nodes);
-				}
+			node.name = source_node.name;
+			node.id = source_node.window;
+			if (!source_node.window) {
+				node.class = null;
+			} else {
+				node.class = source_node.window_properties.class;
 			}
 		}
-		return node;
+		node.focused = (node.nodes && node.nodes.some((c) => c.focused)) || source_node.focused;
+		
+		return [node];
 	}
 }
 
