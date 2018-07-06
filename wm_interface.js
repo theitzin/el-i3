@@ -163,6 +163,7 @@ class i3Interface extends WMInterface {
 			// first argument seems to always be null
 			let data = args[1];
 			console.log(data);
+			console.log(this._dfs(data, this._is_leaf, this._get_children, this._build_node));
 
 			let tree = {};
 			tree.focus = {};
@@ -241,6 +242,65 @@ class i3Interface extends WMInterface {
 		}
 
 		this.emit('update', this.tree);
+	}
+
+	_dfs(node, is_leaf, get_children, build_node) {
+		if (is_leaf(node)) {
+			return build_node(node, null);
+		} else {
+			let children = [];
+			for (let child of get_children(node)) {
+				children.push(this._dfs(child, is_leaf, get_children, build_node));
+			}
+			return build_node(node, children);
+		}
+	}
+
+	_is_leaf(node) {
+		if (node.nodes.length != 0) {
+			return false;
+		} else {
+			if (['con', 'workspace'].includes(node.type)) {
+				return true;	
+			} else {
+				throw new Error(`unexpected leaf node type '${node.type}'`);				
+			}
+		}
+	}
+
+	_get_children(node) {
+		if (['root', 'con', 'floating_con'].includes(node.type)) {
+			return node.nodes;
+		} else if (node.type == 'output' && node.name == '__i3') {
+			return node.nodes;
+		} else if (node.type == 'output' && node.name != '__i3') {
+			return node.nodes[1].nodes;
+		} else if (node.type == 'workspace') {
+			return node.nodes.concat(node.floating_nodes);
+		} else {
+			throw new Error(`unexpected type '${node.type}'`);
+		}
+	}
+
+	_build_node(source_node, children) {
+		let node = {
+			type : source_node.type
+		};
+		if (!children) {
+			// leaf node
+		} else if (['root', 'output', 'workspace'].includes(source_node.type)) {
+			node.nodes = children;
+		} else if (['con', 'floating_con'].includes(source_node.type)) {
+			node.nodes = [];
+			for (let child of children) {
+				if (!child.nodes) { // leaf node
+					node.nodes.push(child);
+				} else {
+					node.nodes.concat(child.nodes);
+				}
+			}
+		}
+		return node;
 	}
 }
 
