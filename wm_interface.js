@@ -162,6 +162,7 @@ class i3Interface extends WMInterface {
 		i3.tree((...args) => {
 			// first argument seems to always be null
 			let data = args[1];
+			console.log(data);
 
 			let tree = {};
 			tree.focus = {};
@@ -189,7 +190,6 @@ class i3Interface extends WMInterface {
 			}
 
 			this.tree = tree;
-
 			this.emit('update', this.tree);
 		});
 	}

@@ -116,6 +116,10 @@ img {
 	display: none;
 }
 
+.info_alert {
+	display: none;
+}
+
 .info_container {
 	line-height: initial;
 	margin-left: 4px;

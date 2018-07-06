@@ -56,15 +56,20 @@ class Status extends base_module.BaseModule {
 		// always return to default state via delayed unhover event
 		for (let e of elements.slice(1)) {
 			$(e.vs).addClass('info_hidden');
-			$(e.vs).hover(() => { $([elements[0].vs, e.vs].join()).stop(true, true); }, () => {
+
+			let timer = null;
+			$(e.vs).hover(() => { 
+				clearTimeout(timer);
+				$([elements[0].vs, e.vs].join()).stop(true, true);
+			}, () => {
 				if (!$(e.vs).hasClass('info_hidden')) {
-					$([elements[0].vs, e.vs].join()).delay(1000).queue(() => {
-						$(elements[0].vs).removeClass('info_hidden');
-						$(e.vs).addClass('info_hidden');
-					});
+					timer = setTimeout(() => {
+						$([elements[0].vs, e.vs].join()).toggleClass('info_hidden');
+					}, 1000);
 				}
 			});
 		}
+
 		// transition between other states via click events
 		for (let t of transitions) {
 			$(t.click || elements[t.from].id).mousedown((e) => { 
@@ -96,10 +101,10 @@ class Status extends base_module.BaseModule {
 		this.init_wifi();
 		this.init_volume();
 		this.init_mail();
+		this.init_display();
 		this.init_brightness();
 		this.init_calendar();
 		this.init_filemanager();
-		this.init_display();
 		this.init_load();
 		this.init_more();
 	}
@@ -107,7 +112,6 @@ class Status extends base_module.BaseModule {
 	init_power() {
 		let data = {
 			id : 'info_icon_power',
-			icon : ht.icons.power.power,
 			con_id : 'power_container',
 			rcon_id : 'power_container_restart_confirm',
 			scon_id : 'power_container_shutdown_confirm'
@@ -115,7 +119,7 @@ class Status extends base_module.BaseModule {
 
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_icon(data.id, ht.icons.power.power));
 
 				$(parent).append(ht.info_container(data.con_id));
 				$('#' + data.con_id).append([
@@ -147,7 +151,7 @@ class Status extends base_module.BaseModule {
 	init_battery() {
 		let data = {
 			id : 'info_icon_battery',
-			icon : ht.icons.battery.discharging[6],
+			initial_icon : ht.icons.battery.discharging[6],
 			con_id : 'battery_container'
 		}
 
@@ -194,13 +198,13 @@ class Status extends base_module.BaseModule {
 
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_icon(data.id, data.initial_icon));
 				$(parent).append(ht.info_container(data.con_id));
 				$('#' + data.con_id).append([
 					ht.info_label(data.con_id + '_label1', '?'),
-					ht.info_icon(data.con_id + '_battery1', data.icon),
+					ht.info_icon(data.con_id + '_battery1', data.initial_icon),
 					ht.info_label(data.con_id + '_label2', '?'),
-					ht.info_icon(data.con_id + '_battery2', data.icon)
+					ht.info_icon(data.con_id + '_battery2', data.initial_icon)
 				].join('\n'));
 
 				this.bind_elements(['#' + data.id, '#' + data.con_id], [{from : 0, to : 1}]);
@@ -209,8 +213,7 @@ class Status extends base_module.BaseModule {
 
 	init_wifi() {
 		let data = {
-			id : 'info_icon_wifi',
-			icon : ht.icons.network.wifi[4]
+			id : 'info_icon_wifi'
 		}
 
 		let volume_icon = (state) => {
@@ -239,18 +242,17 @@ class Status extends base_module.BaseModule {
 
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_icon(data.id, ht.icons.network.wifi[4]));
 
-				$('#' + data.id).click(() => {
+				$('#' + data.id).contextmenu(() => {
 					exec('scripts/reset_wifi');
 				});
 			}, '#icon_wrapper', false, 60, (parent) => update_state());
 	}
 
-		init_volume() {
+	init_volume() {
 		let data = {
 			id : 'info_icon_volume',
-			icon : ht.icons.volume.level[2],
 			con_id : 'volume_container',
 			sink_con_id : 'sink_volume_container'
 		}
@@ -289,7 +291,7 @@ class Status extends base_module.BaseModule {
 
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_icon(data.id, ht.icons.volume.level[2]));
 
 				$(parent).append(ht.info_container(data.con_id));
 				$('#' + data.con_id).append([
@@ -327,13 +329,12 @@ class Status extends base_module.BaseModule {
 
 	init_mail() {
 		let data = {
-			id : 'info_icon_mail',
-			icon : ht.icons.mail
+			id : 'info_icon_mail'
 		}
 
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_icon(data.id, ht.icons.mail));
 				$('#' + data.id).hide();
 				$('#' + data.id).click(() => {
 					exec('scripts/gmail_open');
@@ -342,18 +343,53 @@ class Status extends base_module.BaseModule {
 			(parent) => {
 				exec('scripts/gmail').then(out  => {
 					if (out.stdout.trim() == '0') {
-						$('#' + data.id).hide();
+						$('#' + data.id).addClass('info_alert');
 					} else {
-						$('#' + data.id).show();
+						$('#' + data.id).removeClass('info_alert');
 					}
 				});
 			});
 	}
 
+	init_display() {
+		let data = {
+			id : 'info_icon_display',
+			con_id : 'display_container'
+		}
+
+		this.add_info_icon(
+			(parent) => {
+				$(parent).append(ht.info_icon(data.id, ht.icons.display.auto));
+
+				$(parent).append(ht.info_container(data.con_id));
+				$('#' + data.con_id).append([
+					ht.info_icon(data.con_id + '_auto', ht.icons.display.auto),
+					ht.info_icon(data.con_id + '_mirror', ht.icons.display.mirror),
+					ht.info_icon(data.con_id + '_extend', ht.icons.display.extend),
+					ht.info_icon(data.con_id + '_external', ht.icons.display.external)
+				].join('\n'));
+
+				this.bind_elements(['#' + data.id, '#' + data.con_id], [{from : 0, to : 1}]);
+
+				$('#' + data.con_id + '_auto').click(() => {
+					exec('scripts/display_auto');
+				});
+				$('#' + data.con_id + '_mirror').click(() => {
+					exec('scripts/display_mirror');
+				});
+				$('#' + data.con_id + '_extend').click(() => {
+					exec('scripts/display_extend');
+				});
+				$('#' + data.con_id + '_external').click(() => {
+					exec('scripts/display_external');
+				});
+
+			}, '#icon_wrapper', false);
+	}
+
 	init_brightness() {
 		let data = {
 			id : 'info_icon_brightness',
-			icon : ht.icons.brightness,
 			con_id : 'brightness_container'
 		}
 
@@ -366,7 +402,7 @@ class Status extends base_module.BaseModule {
 
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_icon(data.id, ht.icons.brightness));
 
 				$(parent).append(ht.info_container(data.con_id));
 				$('#' + data.con_id).append([
@@ -385,13 +421,12 @@ class Status extends base_module.BaseModule {
 
 	init_calendar() {
 		let data = {
-			id : 'info_icon_calendar',
-			icon : ht.icons.calendar
+			id : 'info_icon_calendar'
 		}
 
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_icon(data.id, ht.icons.calendar));
 				$('#' + data.id).click(() => {
 					exec('scripts/calendar_open');
 				});
@@ -400,34 +435,25 @@ class Status extends base_module.BaseModule {
 
 	init_filemanager() {
 		let data = {
-			id : 'info_icon_filemanager',
-			icon : ht.icons.filemanager
+			id : 'info_icon_filemanager'
 		}
 
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_icon(data.id, ht.icons.filemanager));
 				$('#' + data.id).click(() => {
 					exec('scripts/filemanager_open');
 				});
 			}, '#icon_wrapper', false);
 	}
 
-	init_display() {
-
-	}
-
 	init_load() {
-				let data = {
+			let data = {
 			id : 'info_icon_load',
-			icon : ht.icons.battery.discharging[6],
 			con_id : 'load_container',
-			id_cpu : 'info_icon_cpu',
-			icon_cpu : ht.icons.battery.discharging[6],
-			id_memory : 'info_icon_memory',
-			icon_memory : ht.icons.battery.discharging[6],
 			id_disk : 'info_icon_disk',
-			icon_disk : ht.icons.battery.discharging[6]
+			id_memory : 'info_icon_memory',
+			id_cpu : 'info_icon_cpu'
 		}
 
 		let cpu_load = () => {
@@ -442,57 +468,60 @@ class Status extends base_module.BaseModule {
 			return load;
 		};
 
-		let memory_human = (bytes) => {
-			if (bytes < 1024) return bytes + 'B';
-			bytes /= 1024;
-			if (bytes < 1024) return Math.floor(bytes) + 'K';
-			bytes /= 1024;
-			if (bytes < 1024) return Math.floor(bytes) + 'M';
-			bytes /= 1024;
-			return Math.floor(bytes) + 'G';
+		let to_human = (bytes) => {
+			let suffix = 'K'
+			if (bytes >= 1024) {
+				suffix = 'M';
+				bytes /= 1024;
+			}
+			if (bytes >= 1024) {
+				suffix = 'G';
+				bytes /= 1024;
+			}
+			return (bytes < 10 ? (bytes).toFixed(1) : Math.floor(bytes)) + suffix;
 		};
 
-		let update_state = () => {
+		let update_state = () => Promise.all([
+			exec('scripts/memory'),
+			exec('scripts/disk_space')
+		]).then(values => {
 			let state = {
-				cpu_load : cpu_load(),
-				memory_load : os.totalmem() - os.freemem(),
-				disk_space : 10
+				cpu_load : os.loadavg(),
+				memory : parseInt(values[0].stdout.trim()),
+				disk_space : parseInt(values[1].stdout.trim())
 			}
 
-			console.log(state);
+			state.high_cpu = state.cpu_load[0] > 2.0;
+			state.high_memory = state.memory / 1024 / 1024 > 10;
+			state.low_disk = state.disk_space / 1024 / 1024 < 20;
 
-			state.high_cpu = state.cpu_load.map((v) => v > 0.8).some((v) => v);
-			state.high_memory = state.memory_load / Math.pow(1024, 3) > 10;
-			state.low_disk = state.disk_space < 10;
-
-			let cpu_formatted = state.cpu_load.map((v) => Math.round(v * 100) + '%').join(' | ');
-			$('#' + data.con_id + '_cpu').html(cpu_formatted);
-			$('#' + data.con_id + '_memory').html(memory_human(state.memory_load));
-			$('#' + data.con_id + '_disk').html(state.disk_space);
-
-			data.high_cpu ? $('#' + data.id_cpu).show() : $('#' + data.id_cpu).hide();
-			data.high_memory ? $('#' + data.id_memory).show() : $('#' + data.id_memory).hide();
-			data.low_disk ? $('#' + data.id_disk).show() : $('#' + data.id_disk).hide();
-		};
+			$('#' + data.con_id + '_disk_label').html(to_human(state.disk_space));
+			$('#' + data.con_id + '_memory_label').html(to_human(state.memory));
+			$('#' + data.con_id + '_cpu_label').html(Number.parseFloat(state.cpu_load[0]).toFixed(2));
+			
+			state.low_disk ? $('#' + data.id_disk).removeClass('info_alert') : $('#' + data.id_disk).addClass('info_alert');
+			state.high_memory ? $('#' + data.id_memory).removeClass('info_alert') : $('#' + data.id_memory).addClass('info_alert');
+			state.high_cpu ? $('#' + data.id_cpu).removeClass('info_alert') : $('#' + data.id_cpu).addClass('info_alert');
+		});
 
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id_cpu, data.icon_cpu));
-				$(parent).append(ht.info_icon(data.id_memory, data.icon_memory));
-				$(parent).append(ht.info_icon(data.id_disk, data.icon_disk));
-				$('#' + data.id_cpu).hide();
-				$('#' + data.id_memory).hide();
-				$('#' + data.id_disk).hide();
+				$(parent).append(ht.info_icon(data.id_disk, ht.icons.load.disk));
+				$(parent).append(ht.info_icon(data.id_memory, ht.icons.load.memory));
+				$(parent).append(ht.info_icon(data.id_cpu, ht.icons.load.cpu));
+				$('#' + data.id_disk).addClass('info_alert');
+				$('#' + data.id_memory).addClass('info_alert');
+				$('#' + data.id_cpu).addClass('info_alert');
 
-				$(parent).append(ht.info_icon(data.id, data.icon));
+				$(parent).append(ht.info_icon(data.id, ht.icons.load.load));
 				$(parent).append(ht.info_container(data.con_id));
 				$('#' + data.con_id).append([
-					ht.info_label(data.con_id + '_cpu', '?'),
-					ht.info_icon(data.icon_cpu, data.icon_cpu),
-					ht.info_label(data.con_id + '_memory', '?'),
-					ht.info_icon(data.icon_memory, data.icon_memory),
-					ht.info_label(data.con_id + '_disk', '?'),
-					ht.info_icon(data.icon_disk, data.icon_disk),
+					ht.info_label(data.con_id + '_disk_label', '?'),
+					ht.info_icon(data.con_id + '_disk_icon', ht.icons.load.disk),
+					ht.info_label(data.con_id + '_memory_label', '?'),
+					ht.info_icon(data.con_id + '_memory_icon', ht.icons.load.memory),
+					ht.info_label(data.con_id + '_cpu_label', '?'),
+					ht.info_icon(data.con_id + '_cpu_icon', ht.icons.load.cpu)
 				].join('\n'));
 
 				this.bind_elements(['#' + data.id, '#' + data.con_id], [{from : 0, to : 1}]);
@@ -502,18 +531,19 @@ class Status extends base_module.BaseModule {
 	init_more() {
 		let data = {
 			id : 'info_icon_more',
-			icon : ht.icons.more,
 			optional_ids : [
 				'#info_icon_brightness',
 				'#info_icon_calendar',
-				'#info_icon_filemanager'
+				'#info_icon_filemanager',
+				'#info_icon_load',
+				'#info_icon_display'
 			].join()
 		}
-		let timer = null;
 
+		let timer = null;
 		this.add_info_icon(
 			(parent) => {
-				$(parent).append(ht.info_icon(data.id, data.icon))
+				$(parent).append(ht.info_icon(data.id, ht.icons.more))
 				$(data.optional_ids).addClass('info_optional');
 				$('#' + data.id).click(() => {
 					$(`#${data.id}, ${data.optional_ids}`).toggleClass('info_optional');
@@ -521,10 +551,10 @@ class Status extends base_module.BaseModule {
 				$(data.optional_ids).hover(() => { 
 					clearTimeout(timer);
 					$(data.optional_ids).stop(true, true); 
-				}, () => {
-					$(data.optional_ids).queue(() => timer = setTimeout(() => {
+				}, () => { 
+					timer = setTimeout(() => {
 						$(`#${data.id}, ${data.optional_ids}`).toggleClass('info_optional');
-					}, 1000));
+					}, 1000);
 				});
 			}, '#icon_wrapper', false);
 	}

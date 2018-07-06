@@ -1,0 +1,2 @@
+#!/bin/bash
+df -Pl $HOME | tail -1 | awk '{print $4}'

@@ -6,9 +6,9 @@ class SystemInterface {
 	// volume() {}
 	// brightness() {}
 	network_status() {}
-	cpu_load() {}
-	memory_use() {}
-	disk_space() {}
+	// cpu_load() {}
+	// memory_use() {}
+	// disk_space() {}
 	display_layout() {}
 	// power_action() {}
 	// launch_filemanager() {}

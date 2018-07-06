@@ -59,7 +59,18 @@ const icons = {
 	brightness : 'brightness-5',
 	calendar : 'calendar',
 	filemanager : 'folder',
-	load : 'memory',
+	load : {
+		load : 'speedometer', // 'pulse', // 'poll',
+		disk : 'harddisk',
+		memory : 'memory',
+		cpu : 'chip'
+	},
+	display : {
+		auto : 'laptop',
+		mirror : 'projector',
+		extend : 'monitor-multiple',
+		external : 'monitor'
+	},
 	mail : 'email',
 	more : 'chevron-left'
 }
