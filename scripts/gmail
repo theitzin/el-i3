@@ -1,5 +1,0 @@
-#!/bin/bash
-user=$(~/.log/logu google)
-pw=$(~/.log/logp google)
-
-curl -u $user:$pw --silent "https://mail.google.com/mail/feed/atom" |  python3 ~/.config/i3/scripts/gmail.py

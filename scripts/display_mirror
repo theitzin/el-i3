@@ -1,8 +1,0 @@
-#!/bin/bash
-res="1920x1080"
-if [ $# -ne 0 ]
-then 
-	res=$1
-fi
-xrandr --output HDMI2 --mode $res --same-as eDP1
-

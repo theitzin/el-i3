@@ -1,2 +1,0 @@
-#!/bin/bash
-pactl list sinks | grep "Volume: front" | grep -o -E "[0-9]+%" | head -1 | sed "s/%//"

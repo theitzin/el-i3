@@ -9,7 +9,7 @@ class SystemInterface {
 	// cpu_load() {}
 	// memory_use() {}
 	// disk_space() {}
-	display_layout() {}
+	// display_layout() {}
 	// power_action() {}
 	// launch_filemanager() {}
 	// mail() {}

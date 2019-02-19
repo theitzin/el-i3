@@ -16,7 +16,7 @@ function create_window () {
         width: 200, 
         height: 50,
         type: 'utility', // 'splash',
-        //transparant: true,
+        transparant: true,
         frame: false
     });
 

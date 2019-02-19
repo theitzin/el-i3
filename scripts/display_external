@@ -1,8 +1,0 @@
-#!/bin/bash
-res="1920x1080"
-if [ $# -ne 0 ]
-then 
-	xrandr --output eDP1 --off --output HDMI2 --mode $res
-else
-	xrandr --output eDP1 --off --output HDMI2 --auto
-fi

@@ -145,6 +145,19 @@ class Status extends base_module.BaseModule {
 					{from : 1, to : 2, click : '#' + data.con_id + '_restart'},
 					{from : 1, to : 3, click : '#' + data.con_id + '_shutdown'}
 				]);
+
+				$('#' + data.scon_id + '_label').click(() => {
+					exec('scripts/shutdown shutdown');
+				});
+
+				$('#' + data.rcon_id + '_label').click(() => {
+					exec('scripts/shutdown restart');
+				});
+
+				$('#' + data.con_id + '_suspend').click(() => {
+					exec('scripts/shutdown suspend');
+				});
+
 			}, '#icon_wrapper', false);
 	}
 

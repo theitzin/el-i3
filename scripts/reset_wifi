@@ -1,2 +1,0 @@
-#!/bin/bash
-gnome-terminal -e "systemctl restart network-manager.service"

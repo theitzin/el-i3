@@ -1,5 +1,6 @@
 html {
 	border-radius: 5px 5px 0px 0px;
+	/*background-color: transparent;*/
 }
 
 body {
@@ -9,6 +10,7 @@ body {
 	width: 10000px; 
 	height: 10000px;
 	user-select: none;
+	/*background-color: transparent;*/
 }
 
 #core {
